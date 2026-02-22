@@ -13,9 +13,25 @@ class DriverController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $drivers = Driver::with(['toda', 'tricycle'])->latest()->paginate(10);
+        $query = Driver::with(['toda', 'tricycle']);
+
+        if ($request->filled('search')) {
+            $term = $request->search;
+            $query->where(function ($q) use ($term) {
+                $q->where('first_name', 'like', "%{$term}%")
+                    ->orWhere('last_name', 'like', "%{$term}%")
+                    ->orWhere('license_number', 'like', "%{$term}%")
+                    ->orWhere('contact_number', 'like', "%{$term}%");
+            });
+        }
+
+        if ($request->filled('status') && in_array($request->status, ['active', 'inactive'])) {
+            $query->where('status', $request->status);
+        }
+
+        $drivers = $query->latest()->paginate(10)->withQueryString();
         $todas = Toda::where('status', 'active')->get();
         $tricycles = Tricycle::where('status', 'active')
             ->doesntHave('driver')

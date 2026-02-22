@@ -10,9 +10,24 @@ class TricycleController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $tricycles = \App\Models\Tricycle::with('toda')->latest()->paginate(10);
+        $query = \App\Models\Tricycle::with(['toda', 'driver']);
+
+        if ($request->filled('search')) {
+            $term = $request->search;
+            $query->where(function ($q) use ($term) {
+                $q->where('body_number', 'like', "%{$term}%")
+                    ->orWhere('plate_number', 'like', "%{$term}%")
+                    ->orWhere('make_model', 'like', "%{$term}%");
+            });
+        }
+
+        if ($request->filled('status') && in_array($request->status, ['active', 'inactive', 'maintenance'])) {
+            $query->where('status', $request->status);
+        }
+
+        $tricycles = $query->latest()->paginate(10)->withQueryString();
         $todas = \App\Models\Toda::all();
         return view('admin.tricycles.index', compact('tricycles', 'todas'));
     }

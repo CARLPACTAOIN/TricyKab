@@ -5,10 +5,10 @@
         <span class="text-slate-900 dark:text-white font-medium">@yield('title')</span>
     </div>
     <div class="flex items-center gap-6">
-        <div class="relative hidden md:block">
+        <form method="GET" action="{{ route('admin.search') }}" class="relative hidden md:block">
             <span class="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
-            <input class="pl-10 pr-4 py-1.5 w-64 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/20" placeholder="Global search..." type="text"/>
-        </div>
+            <input name="q" value="{{ request('q') }}" class="pl-10 pr-4 py-1.5 w-64 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/20" placeholder="Global search..." type="search" autocomplete="off"/>
+        </form>
         <div class="flex items-center gap-4">
             <button class="text-slate-400 hover:text-primary transition-colors">
                 <span class="material-icons-outlined">notifications</span>

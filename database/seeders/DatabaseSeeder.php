@@ -24,7 +24,8 @@ class DatabaseSeeder extends Seeder
         // --- Admin User ---
         $admin = User::create([
             'name' => 'Admin',
-            'email' => 'admin@tricykab.test',
+            'email' => '
+            ',
             'password' => bcrypt('password'),
             'role' => 'admin',
         ]);

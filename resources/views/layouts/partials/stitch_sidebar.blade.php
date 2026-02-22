@@ -6,8 +6,8 @@
         <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">TricyKab</span>
     </div>
     <nav class="flex-1 px-3 py-4 space-y-1">
-        <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('admin.dashboard') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('admin.dashboard') }}">
-            <span class="material-icons-outlined mr-3 {{ request()->routeIs('admin.dashboard') ? '' : 'text-slate-400 group-hover:text-primary' }}">dashboard</span>
+        <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('admin.dashboard') || request()->routeIs('dashboard') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('admin.dashboard') }}">
+            <span class="material-icons-outlined mr-3 {{ request()->routeIs('admin.dashboard') || request()->routeIs('dashboard') ? '' : 'text-slate-400 group-hover:text-primary' }}">dashboard</span>
             <span class="font-medium">Dashboard</span>
         </a>
         <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('todas.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('todas.index') }}">

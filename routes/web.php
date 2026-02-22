@@ -24,6 +24,8 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
         return view('dashboard'); // This should point to the admin dashboard
     })->name('admin.dashboard');
 
+    Route::get('/search', [\App\Http\Controllers\Admin\SearchController::class, 'index'])->name('admin.search');
+
     // Fleet Management
     Route::resource('todas', \App\Http\Controllers\Admin\TodaController::class);
     Route::resource('tricycles', \App\Http\Controllers\Admin\TricycleController::class);

@@ -11,9 +11,24 @@ class TodaController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $todas = Toda::withCount(['tricycles', 'drivers'])->latest()->paginate(10);
+        $query = Toda::withCount(['tricycles', 'drivers']);
+
+        if ($request->filled('search')) {
+            $term = $request->search;
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                    ->orWhere('area_coverage', 'like', "%{$term}%")
+                    ->orWhere('operating_hours', 'like', "%{$term}%");
+            });
+        }
+
+        if ($request->filled('status') && in_array($request->status, ['active', 'inactive'])) {
+            $query->where('status', $request->status);
+        }
+
+        $todas = $query->latest()->paginate(10)->withQueryString();
         return view('admin.todas.index', compact('todas'));
     }
 
