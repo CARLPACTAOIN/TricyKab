@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .sidebar-item-active {
+        @apply bg-primary/10 border-r-4 border-primary text-primary;
+    }
+    .table-row-hover:hover {
+        @apply bg-primary/5;
+    }
+}
