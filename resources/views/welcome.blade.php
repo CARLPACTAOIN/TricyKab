@@ -47,6 +47,16 @@
             },
         }
     </script>
+
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-16px); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+    </style>
 </head>
 <body class="font-display bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-200">
 
@@ -114,7 +124,7 @@
             <div class="relative">
                 <div class="absolute -top-20 -right-20 w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-50"></div>
                 <div class="absolute -bottom-20 -left-20 w-72 h-72 bg-secondary/20 rounded-full blur-3xl opacity-50"></div>
-                <div class="relative z-10 rounded-3xl overflow-hidden shadow-2xl bg-white dark:bg-slate-900 p-4 border border-primary/5">
+                <div class="animate-float relative z-10 rounded-3xl overflow-hidden shadow-2xl bg-white dark:bg-slate-900 p-4 border border-primary/5">
                     <div class="bg-slate-100 dark:bg-slate-800 rounded-2xl w-full h-[400px] flex items-center justify-center relative">
                         <img alt="Map View" class="absolute inset-0 w-full h-full object-cover opacity-80" src="{{ asset('assets/images/stitch/hero-map.jpg') }}"/>
                         <div class="relative bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl max-w-xs border border-primary/10">
