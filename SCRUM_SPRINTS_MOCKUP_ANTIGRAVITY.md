@@ -18,7 +18,7 @@ This is an Antigravity-first mockup plan, not a Laravel implementation plan.
 
 | Member | Primary lane | Complexity target |
 |---|---|---|
-| You | Shared design system, complex passenger flow, final integration | Highest |
+| Carl | Shared design system, complex passenger flow, final integration | Highest |
 | Perez | Core admin shell and admin operational screens | High |
 | Kenth | Admin management screens and complex driver execution flow | High |
 | Vasquez | Simpler passenger screens and passenger stretch states | Lighter |
@@ -89,6 +89,19 @@ Every ticket must end with these three outputs:
    - exact screens completed
    - off-MVP features explicitly excluded
 
+## Antigravity Prompt Protocol
+
+The full teammate prompting workflow now lives in [ANTIGRAVITY_PROMPT_PROTOCOL.md](<c:\laragon\www\TricyKab\ANTIGRAVITY_PROMPT_PROTOCOL.md:1>).
+
+Use that file together with this sprint plan before starting any Antigravity work. It contains:
+
+- the startup order
+- the master prompt
+- the ticket prompt template
+- the visual parent map
+- the handoff message
+- the minimum handoff package
+
 ## Presentation Order
 
 Use this fixed review order in the final exported set:
@@ -136,10 +149,10 @@ This matrix is the source of truth for exact required-screen ownership. Each req
 | Admin Web | `Bookings and Trips Monitor` | Perez | `TK-MOCK-007` |
 | Admin Web | `Booking or Trip Detail View` | Perez | `TK-MOCK-007` |
 | Passenger Flow | `OTP Login` | Vasquez | `TK-MOCK-009` |
-| Passenger Flow | `Book Ride` | You | `TK-MOCK-006` |
+| Passenger Flow | `Book Ride` | Carl | `TK-MOCK-006` |
 | Passenger Flow | `Searching Driver` | Vasquez | `TK-MOCK-009` |
-| Passenger Flow | `Driver Assigned and ETA` | You | `TK-MOCK-006` |
-| Passenger Flow | `Trip In Progress` | You | `TK-MOCK-006` |
+| Passenger Flow | `Driver Assigned and ETA` | Carl | `TK-MOCK-006` |
+| Passenger Flow | `Trip In Progress` | Carl | `TK-MOCK-006` |
 | Passenger Flow | `Trip Complete and Receipt` | Vasquez | `TK-MOCK-009` |
 | Passenger Flow | `Trip History` | Vasquez | `TK-MOCK-009` |
 | Driver Flow | `OTP Login` | Aleighx | `TK-MOCK-010` |
@@ -170,7 +183,7 @@ Every ticket in this file follows the same structure:
 
 ### TK-MOCK-001
 
-- **Assignee:** You
+- **Assignee:** Carl
 - **Objective:** Lock the shared TricyKab mockup system so every later ticket inherits one visual language, one prompt structure, one naming system, and one presentation order.
 - **Read First:** Shared Context files above, `MOCKUP_PRD_ANTIGRAVITY.md` sections 5, 6, 7, 9, 10, 11, and 13, `PRD_MD_V2.md` sections 15, 16, 17, and 20.
 - **Exact Screens:**
@@ -302,7 +315,7 @@ Every ticket in this file follows the same structure:
 
 ### TK-MOCK-006
 
-- **Assignee:** You
+- **Assignee:** Carl
 - **Objective:** Produce the complex passenger booking and active-trip screens that define the main passenger story.
 - **Read First:** Shared Context files above, `MOCKUP_PRD_ANTIGRAVITY.md` sections 7.1 Passenger Flow, 8.6, 8.8, 8.9, 11, and 13, `PRD_MD_V2.md` sections 15.2, 15.3, and 21.1 through 21.3.
 - **Exact Screens:**
@@ -420,7 +433,7 @@ Every ticket in this file follows the same structure:
 
 ### TK-MOCK-011
 
-- **Assignee:** You
+- **Assignee:** Carl
 - **Objective:** Run the final integration pass, enforce cross-screen consistency, keep the landing page visually compatible, and assemble the final presentation-ready export order.
 - **Read First:** Shared Context files above, this entire file, `MOCKUP_PRD_ANTIGRAVITY.md` sections 5, 11, and 13.
 - **Exact Screens:**
@@ -561,7 +574,7 @@ Do not start these unless every required screen and every scheduled stretch scre
 - Passenger tickets cite passenger screen requirements and `PRD_MD_V2.md` section 15.
 - Driver tickets cite driver screen requirements and `PRD_MD_V2.md` section 16.
 - Admin tickets cite admin requirements and `PRD_MD_V2.md` sections 17 and 20.
-- `You`, Perez, and Kenth own the complex work.
+- `Carl`, Perez, and Kenth own the complex work.
 - Vasquez and Aleighx primarily own the simpler screens and state variants.
 - No ticket asks for Laravel features, API work, database work, realtime behavior, or off-MVP modules.
 - All tickets require the same three-output package: prompt text, named exports, and PRD self-check.
