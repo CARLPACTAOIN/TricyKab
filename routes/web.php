@@ -26,6 +26,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
     Route::get('/search', [\App\Http\Controllers\Admin\SearchController::class, 'index'])->name('admin.search');
 
+    Route::get('shell-proof', function () {
+        return view('admin.shell-proof');
+    })->name('admin.shell-proof');
+
     // Fleet Management
     Route::resource('todas', \App\Http\Controllers\Admin\TodaController::class);
     Route::resource('tricycles', \App\Http\Controllers\Admin\TricycleController::class);
