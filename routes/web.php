@@ -83,4 +83,19 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     })->name('admin.audit-logs');
 });
 
+// Mockup Routes
+Route::prefix('mockups/passenger')->group(function () {
+    Route::get('/book-ride', function () {
+        return view('mockups.passenger.book-ride');
+    })->name('mockups.passenger.book-ride');
+
+    Route::get('/assigned-driver', function () {
+        return view('mockups.passenger.assigned-driver');
+    })->name('mockups.passenger.assigned-driver');
+
+    Route::get('/trip-in-progress', function () {
+        return view('mockups.passenger.trip-in-progress');
+    })->name('mockups.passenger.trip-in-progress');
+});
+
 require __DIR__.'/auth.php';
