@@ -10,9 +10,9 @@
             <span class="material-icons-outlined mr-3 {{ request()->routeIs('admin.dashboard') || request()->routeIs('dashboard') ? '' : 'text-slate-400 group-hover:text-primary' }}">dashboard</span>
             <span class="font-medium">Dashboard</span>
         </a>
-        <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('todas.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('todas.index') }}">
-            <span class="material-icons-outlined mr-3 {{ request()->routeIs('todas.*') ? '' : 'text-slate-400 group-hover:text-primary' }}">groups</span>
-            <span class="font-medium">TODA Management</span>
+        <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('admin.bookings') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('admin.bookings') }}">
+            <span class="material-icons-outlined mr-3 {{ request()->routeIs('admin.bookings') ? '' : 'text-slate-400 group-hover:text-primary' }}">receipt_long</span>
+            <span class="font-medium">Bookings & Trips</span>
         </a>
         <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('drivers.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('drivers.index') }}">
             <span class="material-icons-outlined mr-3 {{ request()->routeIs('drivers.*') ? '' : 'text-slate-400 group-hover:text-primary' }}">person_outline</span>
@@ -22,9 +22,33 @@
             <span class="material-icons-outlined mr-3 {{ request()->routeIs('tricycles.*') ? '' : 'text-slate-400 group-hover:text-primary' }}">electric_rickshaw</span>
             <span class="font-medium">Tricycle Fleet</span>
         </a>
+        <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('todas.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('todas.index') }}">
+            <span class="material-icons-outlined mr-3 {{ request()->routeIs('todas.*') ? '' : 'text-slate-400 group-hover:text-primary' }}">groups</span>
+            <span class="font-medium">TODA Management</span>
+        </a>
         <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('fares.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('fares.index') }}">
             <span class="material-icons-outlined mr-3 {{ request()->routeIs('fares.*') ? '' : 'text-slate-400 group-hover:text-primary' }}">payments</span>
-            <span class="font-medium">Fare Rates</span>
+            <span class="font-medium">Fare Rules</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('admin.standby-points') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('admin.standby-points') }}">
+            <span class="material-icons-outlined mr-3 {{ request()->routeIs('admin.standby-points') ? '' : 'text-slate-400 group-hover:text-primary' }}">place</span>
+            <span class="font-medium">Standby Points</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('admin.disputes') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('admin.disputes') }}">
+            <span class="material-icons-outlined mr-3 {{ request()->routeIs('admin.disputes') ? '' : 'text-slate-400 group-hover:text-primary' }}">gavel</span>
+            <span class="font-medium">Disputes</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('admin.sos') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('admin.sos') }}">
+            <span class="material-icons-outlined mr-3 {{ request()->routeIs('admin.sos') ? '' : 'text-slate-400 group-hover:text-primary' }}">sos</span>
+            <span class="font-medium">SOS Alerts</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('admin.analytics') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('admin.analytics') }}">
+            <span class="material-icons-outlined mr-3 {{ request()->routeIs('admin.analytics') ? '' : 'text-slate-400 group-hover:text-primary' }}">insights</span>
+            <span class="font-medium">Analytics</span>
+        </a>
+        <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('admin.audit-logs') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('admin.audit-logs') }}">
+            <span class="material-icons-outlined mr-3 {{ request()->routeIs('admin.audit-logs') ? '' : 'text-slate-400 group-hover:text-primary' }}">fact_check</span>
+            <span class="font-medium">Audit Logs</span>
         </a>
     </nav>
     <div class="p-4 border-t border-slate-200 dark:border-slate-800">

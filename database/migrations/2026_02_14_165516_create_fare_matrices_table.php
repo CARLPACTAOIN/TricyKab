@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('fare_matrices', function (Blueprint $table) {
             $table->id();
-            $table->string('ride_type')->default('shared'); // shared, special, cargo
+            $table->string('ride_type')->default('shared'); // shared, special
             $table->decimal('base_fare', 8, 2);
             $table->decimal('per_km_rate', 8, 2);
             $table->decimal('minimum_distance', 8, 2)->default(2.0);

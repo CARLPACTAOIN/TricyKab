@@ -24,8 +24,7 @@ class DatabaseSeeder extends Seeder
         // --- Admin User ---
         $admin = User::create([
             'name' => 'Admin',
-            'email' => '
-            ',
+            'email' => 'admin@tricykab.test',
             'password' => bcrypt('password'),
             'role' => 'admin',
         ]);
@@ -124,11 +123,9 @@ class DatabaseSeeder extends Seeder
             'ride_type' => 'shared',
             'base_fare' => 15.00,
             'per_km_rate' => 2.50,
-            'minimum_distance' => 2.00,
-            'discount_percentage' => 20.00,
-            'per_passenger_addon' => 0.00,
-            'rush_hour_surcharge' => 5.00,
-            'night_diff_percentage' => 10.00,
+            'multiplier' => 1.00,
+            'min_fare' => 0.00,
+            'max_fare' => 999.00,
             'effective_date' => '2026-02-01',
         ]);
 
@@ -136,23 +133,9 @@ class DatabaseSeeder extends Seeder
             'ride_type' => 'special',
             'base_fare' => 50.00,
             'per_km_rate' => 5.00,
-            'minimum_distance' => 2.00,
-            'discount_percentage' => 0.00,
-            'per_passenger_addon' => 0.00,
-            'rush_hour_surcharge' => 10.00,
-            'night_diff_percentage' => 15.00,
-            'effective_date' => '2026-02-01',
-        ]);
-
-        FareMatrix::create([
-            'ride_type' => 'cargo',
-            'base_fare' => 30.00,
-            'per_km_rate' => 4.00,
-            'minimum_distance' => 1.00,
-            'discount_percentage' => 0.00,
-            'per_passenger_addon' => 0.00,
-            'rush_hour_surcharge' => 0.00,
-            'night_diff_percentage' => 0.00,
+            'multiplier' => 1.50,
+            'min_fare' => 0.00,
+            'max_fare' => 999.00,
             'effective_date' => '2026-02-01',
         ]);
 
@@ -179,7 +162,7 @@ class DatabaseSeeder extends Seeder
             'destination_lat' => 7.1117,
             'destination_lng' => 124.8419,
             'ride_type' => 'shared',
-            'status' => 'completed',
+            'status' => 'COMPLETED',
             'fare_amount' => 20.00,
             'distance_km' => 3.50,
             'accepted_at' => now()->subHours(3),
@@ -198,7 +181,7 @@ class DatabaseSeeder extends Seeder
             'destination_lat' => 7.1060,
             'destination_lng' => 124.8270,
             'ride_type' => 'shared',
-            'status' => 'completed',
+            'status' => 'COMPLETED',
             'fare_amount' => 18.00,
             'distance_km' => 2.80,
             'accepted_at' => now()->subHours(1),
@@ -217,13 +200,13 @@ class DatabaseSeeder extends Seeder
             'destination_lat' => 7.0950,
             'destination_lng' => 124.8150,
             'ride_type' => 'special',
-            'status' => 'pending',
+            'status' => 'SEARCHING_DRIVER',
             'fare_amount' => 80.00,
             'distance_km' => 5.20,
         ]);
 
         // Create payment for completed bookings
-        $completedBookings = Booking::where('status', 'completed')->get();
+        $completedBookings = Booking::where('status', 'COMPLETED')->get();
         foreach ($completedBookings as $booking) {
             Payment::create([
                 'booking_id' => $booking->id,

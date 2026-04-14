@@ -67,7 +67,7 @@
         <div class="p-8 md:p-10">
             <div class="mb-8">
                 <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-2">Sign In</h2>
-                <p class="text-neutral-muted dark:text-gray-400 text-sm">Welcome back to TricyKab Admin!</p>
+                <p class="text-neutral-muted dark:text-gray-400 text-sm">Admin access only. Passenger and driver sign-in uses OTP in the mobile apps.</p>
             </div>
 
             <!-- Session Status -->
@@ -127,21 +127,10 @@
                 </div>
             </form>
 
-            <!-- Divider -->
-            <div class="relative my-8">
-                <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-neutral-border dark:border-white/10"></div>
-                </div>
-                <div class="relative flex justify-center text-sm">
-                    <span class="px-2 bg-white dark:bg-background-dark text-neutral-muted">Or secure login with</span>
-                </div>
-            </div>
-
-            <!-- Footer Link -->
+            <!-- Admin access note -->
             <div class="text-center">
-                <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Don't have an account?
-                    <a class="text-primary font-semibold hover:underline decoration-2 underline-offset-4" href="{{ route('register') }}">Sign Up</a>
+                <p class="text-xs text-neutral-muted dark:text-gray-500">
+                    Need access? Contact the LGU/TMU system administrator.
                 </p>
             </div>
         </div>

@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -27,6 +28,14 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+
+        if (! Auth::user()?->isAdmin()) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'This portal is restricted to LGU/TMU admins.',
+            ]);
+        }
 
         return redirect()->intended(route('dashboard', absolute: false));
     }

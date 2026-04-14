@@ -7,76 +7,76 @@ use App\Models\FareMatrix;
 class FareCalculatorService
 {
     /**
-     * Calculate the fare based on distance and passenger type.
-     *
-     * @param float $distanceInKm
-     * @param bool $isDiscounted (PWD, Senior, Student)
-     * @return array
+     * Calculate shared ride fare estimate.
      */
-    public function calculate(float $distanceInKm, bool $isDiscounted = false): array
+    public function calculate(float $distanceInKm): array
     {
-        // Get the effective fare matrix
-        $matrix = FareMatrix::where('effective_date', '<=', now())
-            ->latest('effective_date')
-            ->first();
+        $matrix = $this->resolveMatrix(FareMatrix::TYPE_SHARED);
 
-        if (!$matrix) {
-            // Fallback default values if no matrix is set
-            $matrix = new FareMatrix([
-                'base_fare' => 10.00,
-                'per_km_rate' => 2.00,
-                'minimum_distance' => 2.00,
-                'discount_percentage' => 20.00,
-            ]);
-        }
-
-        // 1. Calculate Gross Fare
-        $baseFare = $matrix->base_fare;
-        $excessDistance = max(0, $distanceInKm - $matrix->minimum_distance);
-        $distanceFare = $excessDistance * $matrix->per_km_rate;
-        
-        $grossFare = $baseFare + $distanceFare;
-
-        // 2. Calculate Discount
-        $discountAmount = 0.00;
-        if ($isDiscounted) {
-            $discountAmount = $grossFare * ($matrix->discount_percentage / 100);
-        }
-
-        // 3. Final Fare
-        $totalFare = max(0, $grossFare - $discountAmount);
+        $rawFare = $matrix->base_fare + ($distanceInKm * $matrix->per_km_rate);
+        $totalFare = $this->applyBounds($rawFare, $matrix);
 
         return [
+            'type' => 'shared',
             'distance_km' => round($distanceInKm, 2),
-            'base_fare' => $baseFare,
-            'distance_fare' => round($distanceFare, 2),
-            'gross_fare' => round($grossFare, 2),
-            'is_discounted' => $isDiscounted,
-            'discount_amount' => round($discountAmount, 2),
-            'total_fare' => round($totalFare, 2), // Standard rounding to 2 decimal places
+            'base_fare' => round($matrix->base_fare, 2),
+            'per_km_rate' => round($matrix->per_km_rate, 2),
+            'min_fare' => round($matrix->min_fare, 2),
+            'max_fare' => round($matrix->max_fare, 2),
+            'total_fare' => round($totalFare, 2),
             'matrix_used' => $matrix->toArray(),
         ];
     }
 
     /**
-     * Calculate a suggested special (Pakyaw) fare.
-     * Usually double the standard fare or negotiated.
-     *
-     * @param float $distanceInKm
-     * @return array
+     * Calculate suggested special ride fare estimate.
      */
     public function calculateSpecial(float $distanceInKm): array
     {
-        $standard = $this->calculate($distanceInKm);
-        
-        // Example logic: Special trips might be 1.5x or 2x the standard fate
-        // For now, we return the standard fare as a "Baseline" for negotiation
-        $suggestedFare = $standard['gross_fare'] * 1.5; 
+        $matrix = $this->resolveMatrix(FareMatrix::TYPE_SPECIAL);
 
-        return array_merge($standard, [
+        $rawFare = $matrix->base_fare + ($distanceInKm * $matrix->per_km_rate * $matrix->multiplier);
+        $suggestedFare = $this->applyBounds($rawFare, $matrix);
+
+        return [
             'type' => 'special',
+            'distance_km' => round($distanceInKm, 2),
+            'base_fare' => round($matrix->base_fare, 2),
+            'per_km_rate' => round($matrix->per_km_rate, 2),
+            'multiplier' => round($matrix->multiplier, 2),
+            'min_fare' => round($matrix->min_fare, 2),
+            'max_fare' => round($matrix->max_fare, 2),
             'suggested_fare' => round($suggestedFare, 2),
-            'note' => 'Suggested fare is 1.5x the standard rate. Final price is negotiated.',
+            'matrix_used' => $matrix->toArray(),
+        ];
+    }
+
+    private function resolveMatrix(string $rideType): FareMatrix
+    {
+        $matrix = FareMatrix::where('ride_type', $rideType)
+            ->where('effective_date', '<=', now())
+            ->latest('effective_date')
+            ->first();
+
+        if ($matrix) {
+            return $matrix;
+        }
+
+        return new FareMatrix([
+            'ride_type' => $rideType,
+            'base_fare' => $rideType === FareMatrix::TYPE_SPECIAL ? 50.00 : 15.00,
+            'per_km_rate' => $rideType === FareMatrix::TYPE_SPECIAL ? 5.00 : 2.50,
+            'multiplier' => $rideType === FareMatrix::TYPE_SPECIAL ? 1.5 : 1.0,
+            'min_fare' => 0.00,
+            'max_fare' => 9999.00,
         ]);
+    }
+
+    private function applyBounds(float $amount, FareMatrix $matrix): float
+    {
+        $min = $matrix->min_fare ?? 0.00;
+        $max = $matrix->max_fare ?? $amount;
+
+        return min(max($amount, $min), $max);
     }
 }

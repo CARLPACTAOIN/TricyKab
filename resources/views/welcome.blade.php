@@ -81,9 +81,9 @@
                     Dashboard
                 </a>
             @else
-                <a class="font-semibold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors" href="{{ route('login') }}">Log In</a>
-                <a class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-semibold shadow-lg shadow-primary/25 transition-all active:scale-95" href="{{ route('register') }}">
-                    Sign Up
+                <a class="font-semibold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors" href="{{ route('login') }}">Admin Login</a>
+                <a class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-semibold shadow-lg shadow-primary/25 transition-all active:scale-95" href="#contact">
+                    Request Access
                 </a>
             @endauth
         </div>
@@ -105,8 +105,8 @@
                     Experience fast, fair, and secure tricycle commuting in the heart of Kabacan. No more long waits or unfair fares.
                 </p>
                 <div class="flex flex-wrap gap-4">
-                    <a href="{{ route('register') }}" class="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-primary/30 transition-all flex items-center gap-2">
-                        Get Started <span class="material-icons">arrow_forward</span>
+                    <a href="#contact" class="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-primary/30 transition-all flex items-center gap-2">
+                        Request Access <span class="material-icons">arrow_forward</span>
                     </a>
                     <a href="#features" class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-8 py-4 rounded-xl font-bold text-lg transition-all">
                         Learn More

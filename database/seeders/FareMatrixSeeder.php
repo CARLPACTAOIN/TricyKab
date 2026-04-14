@@ -12,10 +12,9 @@ class FareMatrixSeeder extends Seeder
         FareMatrix::create([
             'base_fare' => 15.00,
             'per_km_rate' => 2.00,
-            'minimum_distance' => 2.00,
-            'discount_percentage' => 20.00,
-            'rush_hour_surcharge' => 0.00,
-            'night_diff_percentage' => 0.00,
+            'multiplier' => 1.00,
+            'min_fare' => 0.00,
+            'max_fare' => 999.00,
             'effective_date' => now(),
         ]);
     }
