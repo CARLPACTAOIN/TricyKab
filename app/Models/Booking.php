@@ -42,13 +42,18 @@ class Booking extends Model
 
     // --- Status Constants ---
 
-    const STATUS_PENDING = 'pending';
-    const STATUS_DRIVER_ASSIGNED = 'driver_assigned';
-    const STATUS_IN_PROGRESS = 'in_progress';
-    const STATUS_COMPLETED = 'completed';
-    const STATUS_CANCELLED_BY_PASSENGER = 'cancelled_by_passenger';
-    const STATUS_CANCELLED_BY_DRIVER = 'cancelled_by_driver';
-    const STATUS_CANCELLED_NO_DRIVER = 'cancelled_no_driver';
+    const STATUS_CREATED = 'CREATED';
+    const STATUS_SEARCHING_DRIVER = 'SEARCHING_DRIVER';
+    const STATUS_DRIVER_ASSIGNED = 'DRIVER_ASSIGNED';
+    const STATUS_DRIVER_ON_THE_WAY = 'DRIVER_ON_THE_WAY';
+    const STATUS_DRIVER_ARRIVED = 'DRIVER_ARRIVED';
+    const STATUS_TRIP_IN_PROGRESS = 'TRIP_IN_PROGRESS';
+    const STATUS_COMPLETED = 'COMPLETED';
+    const STATUS_CANCELLED_BY_PASSENGER = 'CANCELLED_BY_PASSENGER';
+    const STATUS_CANCELLED_BY_DRIVER = 'CANCELLED_BY_DRIVER';
+    const STATUS_CANCELLED_NO_DRIVER = 'CANCELLED_NO_DRIVER';
+    const STATUS_NO_SHOW_DRIVER = 'NO_SHOW_DRIVER';
+    const STATUS_NO_SHOW_PASSENGER = 'NO_SHOW_PASSENGER';
 
     // --- Relationships ---
 
@@ -77,9 +82,12 @@ class Booking extends Model
     public function scopeActive($query)
     {
         return $query->whereIn('status', [
-            self::STATUS_PENDING,
+            self::STATUS_CREATED,
+            self::STATUS_SEARCHING_DRIVER,
             self::STATUS_DRIVER_ASSIGNED,
-            self::STATUS_IN_PROGRESS,
+            self::STATUS_DRIVER_ON_THE_WAY,
+            self::STATUS_DRIVER_ARRIVED,
+            self::STATUS_TRIP_IN_PROGRESS,
         ]);
     }
 
@@ -93,14 +101,18 @@ class Booking extends Model
     public function isActive(): bool
     {
         return in_array($this->status, [
-            self::STATUS_PENDING,
+            self::STATUS_CREATED,
+            self::STATUS_SEARCHING_DRIVER,
             self::STATUS_DRIVER_ASSIGNED,
-            self::STATUS_IN_PROGRESS,
+            self::STATUS_DRIVER_ON_THE_WAY,
+            self::STATUS_DRIVER_ARRIVED,
+            self::STATUS_TRIP_IN_PROGRESS,
         ]);
     }
 
     public function isCancelled(): bool
     {
-        return str_starts_with($this->status, 'cancelled');
+        return str_starts_with($this->status, 'CANCELLED_')
+            || str_starts_with($this->status, 'NO_SHOW_');
     }
 }

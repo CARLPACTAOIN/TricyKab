@@ -22,10 +22,10 @@ return new class extends Migration
             $table->decimal('destination_lat', 10, 7)->nullable();
             $table->decimal('destination_lng', 10, 7)->nullable();
             $table->string('destination_address')->nullable();
-            $table->string('ride_type')->default('shared'); // shared, special, cargo
-            $table->string('status')->default('pending');
-            // Status flow: pending → driver_assigned → in_progress → completed
-            // Also: cancelled_by_passenger, cancelled_by_driver, cancelled_no_driver
+            $table->string('ride_type')->default('shared'); // shared, special
+            $table->string('status')->default('CREATED');
+            // Status flow: CREATED → SEARCHING_DRIVER → DRIVER_ASSIGNED → DRIVER_ON_THE_WAY → DRIVER_ARRIVED → TRIP_IN_PROGRESS → COMPLETED
+            // Also: CANCELLED_BY_PASSENGER, CANCELLED_BY_DRIVER, CANCELLED_NO_DRIVER, NO_SHOW_DRIVER, NO_SHOW_PASSENGER
             $table->decimal('fare_amount', 8, 2)->nullable();
             $table->decimal('distance_km', 8, 2)->nullable();
             $table->timestamp('accepted_at')->nullable();
