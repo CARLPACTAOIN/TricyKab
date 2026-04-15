@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TricyKab — Driver Assigned</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="../shared/data.js"></script>
+    <script src="../shared/app.js"></script>
+</head>
+<body>
+<div class="phone-frame">
+    <div class="status-bar"><span class="time">9:42</span><div class="icons"><span class="material-icons-outlined" style="font-size:14px">signal_cellular_alt</span><span class="material-icons-outlined" style="font-size:14px">wifi</span><span class="material-icons-outlined" style="font-size:14px">battery_full</span></div></div>
+    <div class="app-header">
+        <div class="brand"><div class="logo"><span class="material-icons-outlined">electric_rickshaw</span></div><span>TricyKab</span></div>
+        <span class="badge badge-assigned">ASSIGNED</span>
+    </div>
+
+    <div class="screen-content">
+        <!-- Map with driver approaching -->
+        <div class="map-placeholder" style="height:200px; margin-bottom:16px;">
+            <span class="material-icons-outlined">map</span>
+            <span>Driver en route to pickup</span>
+            <!-- Driver marker -->
+            <div style="position:absolute; top:30%; left:40%; z-index:2;">
+                <span class="material-icons-outlined" style="color:var(--primary); font-size:32px;">directions_bike</span>
+            </div>
+            <div style="position:absolute; bottom:25%; right:25%; z-index:2;">
+                <span class="material-icons-outlined" style="color:var(--success); font-size:28px;">place</span>
+            </div>
+        </div>
+
+        <!-- ETA Banner -->
+        <div style="background:var(--primary); border-radius:var(--radius); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <div>
+                <p style="font-size:11px; color:rgba(255,255,255,0.7); font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Driver arriving in</p>
+                <p style="font-size:28px; font-weight:800; color:#fff;">4 min</p>
+            </div>
+            <div style="width:48px; height:48px; background:rgba(255,255,255,0.2); border-radius:14px; display:flex; align-items:center; justify-content:center;">
+                <span class="material-icons-outlined" style="color:#fff; font-size:24px;">schedule</span>
+            </div>
+        </div>
+
+        <!-- Driver Card -->
+        <div class="card" style="padding:16px;">
+            <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+                <div class="avatar avatar-primary">MR</div>
+                <div style="flex:1;">
+                    <p style="font-size:15px; font-weight:700;">Mariano Ramos</p>
+                    <p style="font-size:12px; color:var(--text-muted);">Poblacion TODA · KAB-1234</p>
+                    <div class="stars mt-4" style="font-size:12px;">
+                        <span class="material-icons-outlined filled" style="font-size:14px;">star</span>
+                        <span class="material-icons-outlined filled" style="font-size:14px;">star</span>
+                        <span class="material-icons-outlined filled" style="font-size:14px;">star</span>
+                        <span class="material-icons-outlined filled" style="font-size:14px;">star</span>
+                        <span class="material-icons-outlined" style="font-size:14px; color:#e2e8f0;">star_half</span>
+                        <span style="font-size:11px; color:var(--text-muted); margin-left:4px;">4.7</span>
+                    </div>
+                </div>
+                <button class="btn btn-icon btn-outline" style="width:44px; height:44px; flex-shrink:0;">
+                    <span class="material-icons-outlined" style="font-size:20px;">phone</span>
+                </button>
+            </div>
+            <div class="divider"></div>
+            <div style="display:flex; gap:16px; font-size:12px; color:var(--text-muted); padding-top:4px;">
+                <div style="display:flex; align-items:center; gap:4px;"><span class="material-icons-outlined" style="font-size:14px;">electric_rickshaw</span> Plate: KAB-1234</div>
+                <div style="display:flex; align-items:center; gap:4px;"><span class="material-icons-outlined" style="font-size:14px;">badge</span> License verified</div>
+            </div>
+        </div>
+
+        <!-- Trip Summary -->
+        <div class="card" style="padding:16px;">
+            <div class="info-row">
+                <span class="label">Pickup</span>
+                <span class="value" style="font-size:13px;">Kabacan Public Market</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Dest</span>
+                <span class="value" style="font-size:13px;">USM Main Gate</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Fare</span>
+                <span class="value text-primary">₱35.00</span>
+            </div>
+            <div class="info-row" style="border:none;">
+                <span class="label">Type</span>
+                <span class="badge badge-shared">SHARED</span>
+            </div>
+        </div>
+
+        <!-- Status Dots -->
+        <div style="display:flex; justify-content:center; gap:8px; margin:16px 0;">
+            <div style="width:8px; height:8px; border-radius:50%; background:var(--success);"></div>
+            <div style="width:8px; height:8px; border-radius:50%; background:var(--success);"></div>
+            <div style="width:8px; height:8px; border-radius:50%; background:var(--primary);"></div>
+            <div style="width:8px; height:8px; border-radius:50%; background:var(--border);"></div>
+            <div style="width:8px; height:8px; border-radius:50%; background:var(--border);"></div>
+        </div>
+
+        <a href="05-trip-in-progress.html" class="btn btn-ghost" style="font-size:11px;">
+            <span class="material-icons-outlined" style="font-size:14px;">arrow_forward</span>
+            Continue
+        </a>
+    </div>
+</div>
+</body>
+</html>

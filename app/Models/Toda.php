@@ -25,6 +25,11 @@ class Toda extends Model
         return $this->hasMany(Driver::class);
     }
 
+    public function standbyPoints()
+    {
+        return $this->hasMany(StandbyPoint::class);
+    }
+
     // --- Accessors ---
 
     public function getDriverCountAttribute(): int

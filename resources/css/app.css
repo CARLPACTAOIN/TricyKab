@@ -10,3 +10,12 @@
         @apply bg-primary/5;
     }
 }
+
+/* Leaflet (admin maps): fill the map panel and match app typography */
+.leaflet-container {
+    font-family: inherit;
+}
+[data-map-canvas].leaflet-container {
+    height: 100%;
+    width: 100%;
+}

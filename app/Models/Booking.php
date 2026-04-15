@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Booking extends Model
 {
     protected $fillable = [
+        'booking_reference',
         'passenger_id',
         'driver_id',
         'tricycle_id',
@@ -16,6 +17,8 @@ class Booking extends Model
         'destination_lat',
         'destination_lng',
         'destination_address',
+        'origin_barangay_id',
+        'destination_barangay_id',
         'ride_type',
         'status',
         'fare_amount',
@@ -39,6 +42,17 @@ class Booking extends Model
         'completed_at' => 'datetime',
         'cancelled_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (self $booking) {
+            if (! $booking->booking_reference) {
+                $booking->forceFill([
+                    'booking_reference' => self::makeBookingReference($booking->id, $booking->created_at),
+                ])->saveQuietly();
+            }
+        });
+    }
 
     // --- Status Constants ---
 
@@ -75,6 +89,16 @@ class Booking extends Model
     public function payment()
     {
         return $this->hasOne(Payment::class);
+    }
+
+    public function originBarangay()
+    {
+        return $this->belongsTo(Barangay::class, 'origin_barangay_id');
+    }
+
+    public function destinationBarangay()
+    {
+        return $this->belongsTo(Barangay::class, 'destination_barangay_id');
     }
 
     // --- Scopes ---
@@ -114,5 +138,12 @@ class Booking extends Model
     {
         return str_starts_with($this->status, 'CANCELLED_')
             || str_starts_with($this->status, 'NO_SHOW_');
+    }
+
+    public static function makeBookingReference(int $id, $createdAt = null): string
+    {
+        $year = ($createdAt ?? now())->format('Y');
+
+        return sprintf('BK-%s-%04d', $year, $id);
     }
 }

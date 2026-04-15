@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TricyKab — Passenger Login</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="../shared/data.js"></script>
+    <script src="../shared/app.js"></script>
+</head>
+<body>
+<div class="phone-frame">
+    <div class="status-bar"><span class="time">9:41</span><div class="icons"><span class="material-icons-outlined" style="font-size:14px">signal_cellular_alt</span><span class="material-icons-outlined" style="font-size:14px">wifi</span><span class="material-icons-outlined" style="font-size:14px">battery_full</span></div></div>
+
+    <div class="screen-content" style="display:flex; flex-direction:column; justify-content:center; padding-top:40px;">
+        <!-- Branding -->
+        <div style="text-align:center; margin-bottom:48px;">
+            <div style="width:72px; height:72px; background:var(--primary); border-radius:20px; display:inline-flex; align-items:center; justify-content:center; margin-bottom:16px; box-shadow:0 8px 24px rgba(98,88,202,0.3);">
+                <span class="material-icons-outlined" style="font-size:36px; color:#fff;">electric_rickshaw</span>
+            </div>
+            <h1 style="font-size:26px; font-weight:800; letter-spacing:-0.03em;">TricyKab</h1>
+            <p style="font-size:13px; color:var(--text-muted); margin-top:6px;">Smart Tricycle Dispatch · Kabacan</p>
+        </div>
+
+        <!-- Phone Input -->
+        <div class="card">
+            <p style="font-size:14px; font-weight:600; margin-bottom:16px; color:var(--text-primary);">Sign in with your phone number</p>
+            <div class="input-group">
+                <label>Mobile Number</label>
+                <div class="input-field-icon">
+                    <span class="material-icons-outlined">phone</span>
+                    <input type="tel" class="input-field" placeholder="+63 917 123 4567" value="+63 917 123 4567">
+                </div>
+            </div>
+            <a href="01-otp-login.html#otp" class="btn btn-primary" onclick="document.getElementById('otpSection').style.display='block'; this.closest('.card').style.display='none'; return false;">
+                <span class="material-icons-outlined" style="font-size:18px;">send</span>
+                Send OTP
+            </a>
+        </div>
+
+        <!-- OTP Section -->
+        <div class="card" id="otpSection" style="display:none;">
+            <p style="font-size:14px; font-weight:600; margin-bottom:4px;">Enter verification code</p>
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Sent to +63 917 123 4567</p>
+            <div class="otp-inputs" style="margin-bottom:24px;">
+                <input type="text" class="otp-input filled" value="4" maxlength="1">
+                <input type="text" class="otp-input filled" value="8" maxlength="1">
+                <input type="text" class="otp-input filled" value="2" maxlength="1">
+                <input type="text" class="otp-input filled" value="7" maxlength="1">
+                <input type="text" class="otp-input" maxlength="1">
+                <input type="text" class="otp-input" maxlength="1">
+            </div>
+            <a href="02-book-ride.html" class="btn btn-primary">
+                <span class="material-icons-outlined" style="font-size:18px;">verified</span>
+                Verify & Sign In
+            </a>
+            <button class="btn btn-ghost mt-16">Resend OTP in 0:45</button>
+        </div>
+
+        <p style="text-align:center; font-size:11px; color:var(--text-muted); margin-top:32px;">By continuing, you agree to TricyKab's Terms & Privacy Policy</p>
+    </div>
+</div>
+<script>
+if(location.hash === '#otp') { document.getElementById('otpSection').style.display='block'; document.querySelector('.card').style.display='none'; }
+</script>
+</body>
+</html>

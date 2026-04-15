@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TricyKab — Trip In Progress</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="../shared/data.js"></script>
+    <script src="../shared/app.js"></script>
+</head>
+<body>
+<div class="phone-frame">
+    <div class="status-bar" style="background:var(--primary);"><span class="time" style="color:#fff;">9:48</span><div class="icons"><span class="material-icons-outlined" style="font-size:14px; color:#fff;">signal_cellular_alt</span><span class="material-icons-outlined" style="font-size:14px; color:#fff;">wifi</span><span class="material-icons-outlined" style="font-size:14px; color:#fff;">battery_full</span></div></div>
+
+    <!-- Active Trip Banner -->
+    <div style="background:var(--primary); padding:12px 20px 16px; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+            <p style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.7); text-transform:uppercase; letter-spacing:0.05em;">Trip In Progress</p>
+            <p style="font-size:16px; font-weight:800; color:#fff;">Kabacan Market → USM</p>
+        </div>
+        <span class="badge badge-in-progress" style="background:rgba(255,255,255,0.2); color:#fff;">LIVE</span>
+    </div>
+
+    <div class="screen-content" style="padding-top:16px;">
+        <!-- Map with route -->
+        <div class="map-placeholder" style="height:280px; margin-bottom:16px;">
+            <span class="material-icons-outlined">navigation</span>
+            <span>Live tracking active</span>
+            <!-- Route points -->
+            <div style="position:absolute; top:20%; left:20%; z-index:2;">
+                <span class="material-icons-outlined" style="color:var(--success); font-size:22px;">radio_button_checked</span>
+            </div>
+            <div style="position:absolute; bottom:20%; right:15%; z-index:2;">
+                <span class="material-icons-outlined" style="color:var(--danger); font-size:28px;">place</span>
+            </div>
+            <!-- Tricycle -->
+            <div style="position:absolute; top:45%; left:45%; z-index:2;">
+                <div style="width:36px; height:36px; background:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(98,88,202,0.4);">
+                    <span class="material-icons-outlined" style="color:#fff; font-size:18px;">electric_rickshaw</span>
+                </div>
+            </div>
+            <!-- Route line hint -->
+            <div style="position:absolute; top:30%; left:25%; width:50%; height:35%; border:2px dashed var(--primary); border-radius:40%; opacity:0.3; z-index:1;"></div>
+        </div>
+
+        <!-- Compact Driver Card -->
+        <div class="card card-sm" style="display:flex; align-items:center; gap:12px;">
+            <div class="avatar avatar-primary avatar-sm">MR</div>
+            <div style="flex:1;">
+                <p style="font-size:13px; font-weight:700;">Mariano Ramos</p>
+                <p style="font-size:11px; color:var(--text-muted);">KAB-1234 · Poblacion TODA</p>
+            </div>
+            <button class="btn btn-icon btn-outline" style="width:36px; height:36px; flex-shrink:0;">
+                <span class="material-icons-outlined" style="font-size:18px;">phone</span>
+            </button>
+        </div>
+
+        <!-- Trip Info -->
+        <div class="card" style="padding:16px;">
+            <div class="grid-2">
+                <div class="stat-card" style="padding:8px;">
+                    <p class="stat-value" style="font-size:18px;">3:42</p>
+                    <p class="stat-label">Elapsed</p>
+                </div>
+                <div class="stat-card" style="padding:8px;">
+                    <p class="stat-value" style="font-size:18px;">1.8 km</p>
+                    <p class="stat-label">Remaining</p>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="badge badge-shared">SHARED</span>
+                <span style="font-size:16px; font-weight:800; color:var(--primary);">₱35.00</span>
+            </div>
+        </div>
+
+        <a href="06-trip-complete.html" class="btn btn-ghost" style="font-size:11px; margin-top:8px;">
+            <span class="material-icons-outlined" style="font-size:14px;">arrow_forward</span>
+            Continue
+        </a>
+    </div>
+
+    <!-- SOS Button -->
+    <div class="sos-floating" title="Emergency SOS">
+        <span class="material-icons-outlined" style="font-size:22px;">sos</span>
+    </div>
+</div>
+</body>
+</html>

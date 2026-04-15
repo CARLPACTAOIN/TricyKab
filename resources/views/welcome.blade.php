@@ -112,6 +112,12 @@
                         Learn More
                     </a>
                 </div>
+                <p class="mt-6 text-sm text-slate-600 dark:text-slate-400">
+                    Try the web apps:
+                    <a href="{{ route('passenger.app') }}" class="font-semibold text-primary hover:underline">Passenger</a>
+                    <span class="mx-2 text-slate-300 dark:text-slate-600">·</span>
+                    <a href="{{ route('driver.app') }}" class="font-semibold text-primary hover:underline">Driver</a>
+                </p>
                 <div class="mt-12 flex items-center gap-4 text-sm text-slate-500">
                     <div class="flex -space-x-3">
                         <img alt="User" class="w-10 h-10 rounded-full border-2 border-white" src="{{ asset('assets/images/stitch/avatar-1.jpg') }}"/>

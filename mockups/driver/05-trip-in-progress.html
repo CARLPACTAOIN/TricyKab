@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TricyKab — Driver Trip In Progress</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="../shared/data.js"></script>
+    <script src="../shared/app.js"></script>
+</head>
+<body>
+<div class="phone-frame">
+    <div class="status-bar" style="background:var(--success);"><span class="time" style="color:#fff;">6:18</span><div class="icons"><span class="material-icons-outlined" style="font-size:14px; color:#fff;">signal_cellular_alt</span><span class="material-icons-outlined" style="font-size:14px; color:#fff;">wifi</span><span class="material-icons-outlined" style="font-size:14px; color:#fff;">battery_full</span></div></div>
+
+    <div style="background:var(--success); padding:12px 20px 16px; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+            <p style="font-size:11px; color:rgba(255,255,255,0.7); font-weight:600; text-transform:uppercase;">Trip In Progress</p>
+            <p style="font-size:16px; font-weight:800; color:#fff;">Heading to USM Main Gate</p>
+        </div>
+        <span class="badge" style="background:rgba(255,255,255,0.2); color:#fff;">LIVE</span>
+    </div>
+
+    <div class="screen-content" style="padding-top:16px;">
+        <!-- Map -->
+        <div class="map-placeholder" style="height:220px; margin-bottom:16px;">
+            <span class="material-icons-outlined">navigation</span>
+            <span>Navigating to destination</span>
+            <div style="position:absolute; top:40%; left:40%; z-index:2;">
+                <div style="width:36px; height:36px; background:var(--success); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(9,173,149,0.4);">
+                    <span class="material-icons-outlined" style="color:#fff; font-size:18px;">electric_rickshaw</span>
+                </div>
+            </div>
+            <div style="position:absolute; bottom:20%; right:20%; z-index:2;">
+                <span class="material-icons-outlined" style="color:var(--danger); font-size:28px;">place</span>
+            </div>
+        </div>
+
+        <!-- Passengers on Board -->
+        <div class="card" style="padding:16px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                <p style="font-size:13px; font-weight:700;">Passengers on Board</p>
+                <span style="font-size:13px; font-weight:800; color:var(--primary);">1 / 4</span>
+            </div>
+            <div class="capacity-bar" style="margin-bottom:12px;">
+                <div class="fill" style="width:25%; background:var(--success);"></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div class="avatar avatar-success avatar-sm">MC</div>
+                <div style="flex:1;">
+                    <p style="font-size:13px; font-weight:600;">Maria Clara</p>
+                    <p style="font-size:11px; color:var(--text-muted);">Kabacan Market → USM</p>
+                </div>
+                <span style="font-size:14px; font-weight:700; color:var(--primary);">₱35</span>
+            </div>
+        </div>
+
+        <!-- Trip Stats -->
+        <div class="card" style="padding:0; overflow:hidden;">
+            <div class="grid-2" style="gap:0;">
+                <div class="stat-card" style="border-right:1px solid var(--border-light);">
+                    <p class="stat-value" style="font-size:18px;">4:22</p>
+                    <p class="stat-label">Elapsed</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-value" style="font-size:18px;">1.4 km</p>
+                    <p class="stat-label">Remaining</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex; gap:12px; margin-top:16px;">
+            <a href="06-add-passenger.html" class="btn btn-outline" style="flex:1;">
+                <span class="material-icons-outlined" style="font-size:18px;">person_add</span>
+                Add Passenger
+            </a>
+            <a href="07-end-trip.html" class="btn btn-danger" style="flex:1;">
+                <span class="material-icons-outlined" style="font-size:18px;">stop_circle</span>
+                End Trip
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

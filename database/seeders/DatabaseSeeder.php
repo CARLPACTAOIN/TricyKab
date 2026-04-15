@@ -3,12 +3,15 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Barangay;
 use App\Models\Toda;
 use App\Models\Tricycle;
 use App\Models\Driver;
 use App\Models\FareMatrix;
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Models\StandbyPoint;
+use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -21,6 +24,29 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $barangays = collect([
+            'POBLACION' => Barangay::query()->firstOrCreate(
+                ['code' => 'POBLACION'],
+                ['name' => 'Poblacion']
+            ),
+            'OSIAS' => Barangay::query()->firstOrCreate(
+                ['code' => 'OSIAS'],
+                ['name' => 'Osias']
+            ),
+            'NONGNONGAN' => Barangay::query()->firstOrCreate(
+                ['code' => 'NONGNONGAN'],
+                ['name' => 'Nongnongan']
+            ),
+            'BANGILAN' => Barangay::query()->firstOrCreate(
+                ['code' => 'BANGILAN'],
+                ['name' => 'Bangilan']
+            ),
+            'SANGSANG' => Barangay::query()->firstOrCreate(
+                ['code' => 'SANGSANG'],
+                ['name' => 'Sangsang']
+            ),
+        ]);
+
         // --- Admin User ---
         $admin = User::create([
             'name' => 'Admin',
@@ -139,71 +165,176 @@ class DatabaseSeeder extends Seeder
             'effective_date' => '2026-02-01',
         ]);
 
-        // --- Sample Passenger ---
-        $passenger = User::create([
-            'name' => 'Maria Clara',
-            'email' => 'maria@example.com',
-            'password' => bcrypt('password'),
-            'role' => 'passenger',
-            'phone' => '0917-123-4567',
-        ]);
+        $locations = [
+            'kabacan_public_market' => [
+                'address' => 'Kabacan Public Market',
+                'lat' => 7.1083,
+                'lng' => 124.8295,
+                'barangay_id' => $barangays['POBLACION']->id,
+            ],
+            'kabacan_bus_terminal' => [
+                'address' => 'Kabacan Bus Terminal',
+                'lat' => 7.1060,
+                'lng' => 124.8270,
+                'barangay_id' => $barangays['POBLACION']->id,
+            ],
+            'usm_main_gate' => [
+                'address' => 'USM Main Gate',
+                'lat' => 7.1117,
+                'lng' => 124.8419,
+                'barangay_id' => $barangays['OSIAS']->id,
+            ],
+            'poblacion_terminal' => [
+                'address' => 'Poblacion Terminal',
+                'lat' => 7.1260,
+                'lng' => 124.8370,
+                'barangay_id' => $barangays['POBLACION']->id,
+            ],
+            'osias_market' => [
+                'address' => 'Osias Market',
+                'lat' => 7.1180,
+                'lng' => 124.8420,
+                'barangay_id' => $barangays['OSIAS']->id,
+            ],
+            'nongnongan_barangay_hall' => [
+                'address' => 'Nongnongan Barangay Hall',
+                'lat' => 7.0950,
+                'lng' => 124.8150,
+                'barangay_id' => $barangays['NONGNONGAN']->id,
+            ],
+            'nongnongan_church' => [
+                'address' => 'Nongnongan Church',
+                'lat' => 7.1005,
+                'lng' => 124.8215,
+                'barangay_id' => $barangays['NONGNONGAN']->id,
+            ],
+            'kabacan_national_hs' => [
+                'address' => 'Kabacan National High School',
+                'lat' => 7.1135,
+                'lng' => 124.8330,
+                'barangay_id' => $barangays['POBLACION']->id,
+            ],
+            'usm_south_gate' => [
+                'address' => 'USM South Gate',
+                'lat' => 7.1145,
+                'lng' => 124.8452,
+                'barangay_id' => $barangays['OSIAS']->id,
+            ],
+            'osias_elementary_school' => [
+                'address' => 'Osias Elementary School',
+                'lat' => 7.1206,
+                'lng' => 124.8468,
+                'barangay_id' => $barangays['OSIAS']->id,
+            ],
+            'osias_barangay_hall' => [
+                'address' => 'Osias Barangay Hall',
+                'lat' => 7.1162,
+                'lng' => 124.8435,
+                'barangay_id' => $barangays['OSIAS']->id,
+            ],
+            'nongnongan_terminal' => [
+                'address' => 'Nongnongan Terminal',
+                'lat' => 7.0982,
+                'lng' => 124.8194,
+                'barangay_id' => $barangays['NONGNONGAN']->id,
+            ],
+        ];
+
+        // --- Standby Points ---
+        $standbyPoints = [
+            ['name' => 'Poblacion Terminal', 'toda_id' => $todaPoblacion->id, 'barangay_id' => $barangays['POBLACION']->id, 'latitude' => 7.1260, 'longitude' => 124.8370, 'radius_meters' => 50, 'priority_weight' => 1.50, 'status' => 'ACTIVE'],
+            ['name' => 'Osias Market Stop', 'toda_id' => $todaOsias->id, 'barangay_id' => $barangays['OSIAS']->id, 'latitude' => 7.1180, 'longitude' => 124.8420, 'radius_meters' => 40, 'priority_weight' => 1.20, 'status' => 'ACTIVE'],
+            ['name' => 'USM Main Gate', 'toda_id' => $todaPoblacion->id, 'barangay_id' => $barangays['OSIAS']->id, 'latitude' => 7.1320, 'longitude' => 124.8510, 'radius_meters' => 60, 'priority_weight' => 1.80, 'status' => 'ACTIVE'],
+            ['name' => 'Nongnongan Waiting Area', 'toda_id' => $todaNongnongan->id, 'barangay_id' => $barangays['NONGNONGAN']->id, 'latitude' => 7.1050, 'longitude' => 124.8280, 'radius_meters' => 50, 'priority_weight' => 1.00, 'status' => 'ACTIVE'],
+            ['name' => 'Kabacan Bus Terminal', 'toda_id' => null, 'barangay_id' => $barangays['POBLACION']->id, 'latitude' => 7.1245, 'longitude' => 124.8395, 'radius_meters' => 75, 'priority_weight' => 2.00, 'status' => 'ACTIVE'],
+            ['name' => 'Kabacan Public Market', 'toda_id' => null, 'barangay_id' => $barangays['POBLACION']->id, 'latitude' => 7.1234, 'longitude' => 124.8380, 'radius_meters' => 50, 'priority_weight' => 1.30, 'status' => 'ACTIVE'],
+            ['name' => 'Sangsang Waiting Shed', 'toda_id' => $todaSangsang->id, 'barangay_id' => $barangays['SANGSANG']->id, 'latitude' => 7.0894, 'longitude' => 124.8010, 'radius_meters' => 45, 'priority_weight' => 0.90, 'status' => 'INACTIVE'],
+        ];
+
+        foreach ($standbyPoints as $standbyPoint) {
+            StandbyPoint::create($standbyPoint);
+        }
+
+        // --- Sample Passengers ---
+        $passengers = collect([
+            ['name' => 'Maria Clara', 'email' => 'maria@example.com', 'phone' => '0917-123-4567'],
+            ['name' => 'Juan Dela Cruz', 'email' => 'juan@example.com', 'phone' => '0917-555-1200'],
+            ['name' => 'Amy Reyes', 'email' => 'amy@example.com', 'phone' => '0917-555-1201'],
+            ['name' => 'Rosa Santos', 'email' => 'rosa@example.com', 'phone' => '0917-555-1202'],
+            ['name' => 'Elena Torres', 'email' => 'elena@example.com', 'phone' => '0917-555-1203'],
+            ['name' => 'Marco Villanueva', 'email' => 'marco@example.com', 'phone' => '0917-555-1204'],
+            ['name' => 'Patricia Lim', 'email' => 'patricia@example.com', 'phone' => '0917-555-1205'],
+            ['name' => 'Daniel Ocampo', 'email' => 'daniel@example.com', 'phone' => '0917-555-1206'],
+            ['name' => 'Grace Bautista', 'email' => 'grace@example.com', 'phone' => '0917-555-1207'],
+            ['name' => 'Leo Fernandez', 'email' => 'leo@example.com', 'phone' => '0917-555-1208'],
+            ['name' => 'Nica Flores', 'email' => 'nica@example.com', 'phone' => '0917-555-1209'],
+        ])->mapWithKeys(function ($passenger) {
+            $user = User::create([
+                'name' => $passenger['name'],
+                'email' => $passenger['email'],
+                'password' => bcrypt('password'),
+                'role' => 'passenger',
+                'phone' => $passenger['phone'],
+            ]);
+
+            return [$user->email => $user];
+        });
 
         // --- Sample Bookings ---
-        $sampleDriver = Driver::first();
+        $drivers = Driver::with('tricycle')->get()->values();
+        $bookingDefinitions = [
+            ['passenger' => 'maria@example.com', 'pickup' => 'kabacan_public_market', 'destination' => 'usm_main_gate', 'ride_type' => 'shared', 'status' => Booking::STATUS_COMPLETED, 'fare' => 45.00, 'distance_km' => 3.20, 'driver_index' => 0, 'created_at' => Carbon::now()->subHours(3), 'accepted_after' => 8, 'started_after' => 13, 'completed_after' => 28],
+            ['passenger' => 'juan@example.com', 'pickup' => 'poblacion_terminal', 'destination' => 'nongnongan_barangay_hall', 'ride_type' => 'special', 'status' => Booking::STATUS_DRIVER_ASSIGNED, 'fare' => 95.00, 'distance_km' => 5.80, 'driver_index' => 1, 'created_at' => Carbon::now()->subHours(2)->subMinutes(20), 'accepted_after' => 6],
+            ['passenger' => 'amy@example.com', 'pickup' => 'osias_market', 'destination' => 'kabacan_public_market', 'ride_type' => 'shared', 'status' => Booking::STATUS_SEARCHING_DRIVER, 'fare' => 35.00, 'distance_km' => 2.80, 'driver_index' => null, 'created_at' => Carbon::now()->subHours(2)->subMinutes(5)],
+            ['passenger' => 'rosa@example.com', 'pickup' => 'poblacion_terminal', 'destination' => 'osias_elementary_school', 'ride_type' => 'shared', 'status' => Booking::STATUS_TRIP_IN_PROGRESS, 'fare' => 40.00, 'distance_km' => 3.10, 'driver_index' => 2, 'created_at' => Carbon::now()->subHour()->subMinutes(40), 'accepted_after' => 5, 'started_after' => 15],
+            ['passenger' => 'elena@example.com', 'pickup' => 'nongnongan_church', 'destination' => 'kabacan_bus_terminal', 'ride_type' => 'special', 'status' => Booking::STATUS_DRIVER_ON_THE_WAY, 'fare' => 110.00, 'distance_km' => 6.10, 'driver_index' => 3, 'created_at' => Carbon::now()->subHour()->subMinutes(55), 'accepted_after' => 4],
+            ['passenger' => 'marco@example.com', 'pickup' => 'usm_south_gate', 'destination' => 'poblacion_terminal', 'ride_type' => 'shared', 'status' => Booking::STATUS_DRIVER_ARRIVED, 'fare' => 35.00, 'distance_km' => 2.60, 'driver_index' => 4, 'created_at' => Carbon::now()->subHours(5), 'accepted_after' => 5],
+            ['passenger' => 'patricia@example.com', 'pickup' => 'kabacan_national_hs', 'destination' => 'osias_market', 'ride_type' => 'shared', 'status' => Booking::STATUS_CANCELLED_BY_PASSENGER, 'fare' => 35.00, 'distance_km' => 2.70, 'driver_index' => null, 'created_at' => Carbon::now()->subHours(6)],
+            ['passenger' => 'daniel@example.com', 'pickup' => 'osias_barangay_hall', 'destination' => 'usm_main_gate', 'ride_type' => 'special', 'status' => Booking::STATUS_CANCELLED_BY_DRIVER, 'fare' => 80.00, 'distance_km' => 3.40, 'driver_index' => 5, 'created_at' => Carbon::now()->subDay()->subHours(2), 'accepted_after' => 7],
+            ['passenger' => 'grace@example.com', 'pickup' => 'nongnongan_terminal', 'destination' => 'poblacion_terminal', 'ride_type' => 'shared', 'status' => Booking::STATUS_CANCELLED_NO_DRIVER, 'fare' => 40.00, 'distance_km' => 4.00, 'driver_index' => null, 'created_at' => Carbon::now()->subDay()->subHours(4)],
+            ['passenger' => 'leo@example.com', 'pickup' => 'kabacan_public_market', 'destination' => 'nongnongan_church', 'ride_type' => 'shared', 'status' => Booking::STATUS_NO_SHOW_PASSENGER, 'fare' => 40.00, 'distance_km' => 4.30, 'driver_index' => 6, 'created_at' => Carbon::now()->subDay()->subHours(10), 'accepted_after' => 6],
+            ['passenger' => 'nica@example.com', 'pickup' => 'osias_market', 'destination' => 'kabacan_bus_terminal', 'ride_type' => 'special', 'status' => Booking::STATUS_NO_SHOW_DRIVER, 'fare' => 90.00, 'distance_km' => 4.70, 'driver_index' => 7, 'created_at' => Carbon::now()->subDays(2)->subHours(2), 'accepted_after' => 5],
+            ['passenger' => 'maria@example.com', 'pickup' => 'usm_main_gate', 'destination' => 'kabacan_bus_terminal', 'ride_type' => 'shared', 'status' => Booking::STATUS_COMPLETED, 'fare' => 38.00, 'distance_km' => 2.80, 'driver_index' => 8, 'created_at' => Carbon::now()->subDays(3)->subHours(1), 'accepted_after' => 4, 'started_after' => 9, 'completed_after' => 22],
+        ];
 
-        Booking::create([
-            'passenger_id' => $passenger->id,
-            'driver_id' => $sampleDriver->id,
-            'tricycle_id' => $sampleDriver->tricycle_id,
-            'pickup_address' => 'Kabacan Public Market',
-            'pickup_lat' => 7.1083,
-            'pickup_lng' => 124.8295,
-            'destination_address' => 'USM Kabacan',
-            'destination_lat' => 7.1117,
-            'destination_lng' => 124.8419,
-            'ride_type' => 'shared',
-            'status' => 'COMPLETED',
-            'fare_amount' => 20.00,
-            'distance_km' => 3.50,
-            'accepted_at' => now()->subHours(3),
-            'started_at' => now()->subHours(3)->addMinutes(5),
-            'completed_at' => now()->subHours(3)->addMinutes(20),
-        ]);
+        foreach ($bookingDefinitions as $definition) {
+            $pickup = $locations[$definition['pickup']];
+            $destination = $locations[$definition['destination']];
+            $driver = $definition['driver_index'] !== null ? $drivers[$definition['driver_index']] ?? null : null;
+            $createdAt = $definition['created_at'];
 
-        Booking::create([
-            'passenger_id' => $passenger->id,
-            'driver_id' => $sampleDriver->id,
-            'tricycle_id' => $sampleDriver->tricycle_id,
-            'pickup_address' => 'USM Kabacan',
-            'pickup_lat' => 7.1117,
-            'pickup_lng' => 124.8419,
-            'destination_address' => 'Kabacan Bus Terminal',
-            'destination_lat' => 7.1060,
-            'destination_lng' => 124.8270,
-            'ride_type' => 'shared',
-            'status' => 'COMPLETED',
-            'fare_amount' => 18.00,
-            'distance_km' => 2.80,
-            'accepted_at' => now()->subHours(1),
-            'started_at' => now()->subHours(1)->addMinutes(4),
-            'completed_at' => now()->subHours(1)->addMinutes(18),
-        ]);
+            $booking = Booking::create([
+                'passenger_id' => $passengers[$definition['passenger']]->id,
+                'driver_id' => $driver?->id,
+                'tricycle_id' => $driver?->tricycle_id,
+                'pickup_address' => $pickup['address'],
+                'pickup_lat' => $pickup['lat'],
+                'pickup_lng' => $pickup['lng'],
+                'destination_address' => $destination['address'],
+                'destination_lat' => $destination['lat'],
+                'destination_lng' => $destination['lng'],
+                'origin_barangay_id' => $pickup['barangay_id'],
+                'destination_barangay_id' => $destination['barangay_id'],
+                'ride_type' => $definition['ride_type'],
+                'status' => $definition['status'],
+                'fare_amount' => $definition['fare'],
+                'distance_km' => $definition['distance_km'],
+                'accepted_at' => isset($definition['accepted_after']) ? $createdAt->copy()->addMinutes($definition['accepted_after']) : null,
+                'started_at' => isset($definition['started_after']) ? $createdAt->copy()->addMinutes($definition['started_after']) : null,
+                'completed_at' => isset($definition['completed_after']) ? $createdAt->copy()->addMinutes($definition['completed_after']) : null,
+                'cancelled_at' => str_starts_with($definition['status'], 'CANCELLED') || str_starts_with($definition['status'], 'NO_SHOW')
+                    ? $createdAt->copy()->addMinutes(18)
+                    : null,
+                'created_at' => $createdAt,
+                'updated_at' => isset($definition['completed_after'])
+                    ? $createdAt->copy()->addMinutes($definition['completed_after'])
+                    : $createdAt->copy()->addMinutes($definition['accepted_after'] ?? 5),
+            ]);
 
-        Booking::create([
-            'passenger_id' => $passenger->id,
-            'driver_id' => null,
-            'tricycle_id' => null,
-            'pickup_address' => 'Kabacan Public Market',
-            'pickup_lat' => 7.1083,
-            'pickup_lng' => 124.8295,
-            'destination_address' => 'Brgy. Nongnongan',
-            'destination_lat' => 7.0950,
-            'destination_lng' => 124.8150,
-            'ride_type' => 'special',
-            'status' => 'SEARCHING_DRIVER',
-            'fare_amount' => 80.00,
-            'distance_km' => 5.20,
-        ]);
+            $booking->forceFill([
+                'booking_reference' => Booking::makeBookingReference($booking->id, $booking->created_at),
+            ])->saveQuietly();
+        }
 
         // Create payment for completed bookings
         $completedBookings = Booking::where('status', 'COMPLETED')->get();

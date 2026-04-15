@@ -1,15 +1,70 @@
 <?php
 
+use App\Http\Controllers\Admin\BookingController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\StandbyPointController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'admin'])->name('dashboard');
+// Public web-app surfaces (UI + client-side state; backend wiring pending)
+Route::prefix('passenger-app')->group(function () {
+    Route::get('/', function () {
+        return view('webapp.passenger', ['activeNav' => 'book']);
+    })->name('passenger.app');
+
+    Route::get('/trips', function () {
+        return view('webapp.passenger-trips', [
+            'activeNav' => 'trips',
+            'demoTrips' => [
+                [
+                    'ref' => 'BKG-2026-000042',
+                    'status' => 'COMPLETED',
+                    'pickup' => 'Kabacan Public Market',
+                    'destination' => 'USM Main Gate',
+                    'fare' => '35.00',
+                    'rideType' => 'SHARED',
+                    'at' => '2026-04-14T10:30:00+08:00',
+                ],
+                [
+                    'ref' => 'BKG-2026-000018',
+                    'status' => 'CANCELLED_BY_PASSENGER',
+                    'pickup' => 'Poblacion',
+                    'destination' => 'Hospital',
+                    'fare' => '—',
+                    'rideType' => 'SPECIAL',
+                    'at' => '2026-04-12T16:05:00+08:00',
+                ],
+            ],
+        ]);
+    })->name('passenger.trips');
+
+    Route::get('/profile', function () {
+        return view('webapp.passenger-profile', ['activeNav' => 'profile']);
+    })->name('passenger.profile');
+});
+
+Route::prefix('driver-app')->group(function () {
+    Route::get('/', function () {
+        return view('webapp.driver', ['activeNav' => 'dashboard']);
+    })->name('driver.app');
+
+    Route::get('/earnings', function () {
+        return view('webapp.driver-earnings', ['activeNav' => 'earnings']);
+    })->name('driver.earnings');
+
+    Route::get('/account', function () {
+        return view('webapp.driver-account', ['activeNav' => 'account']);
+    })->name('driver.account');
+});
+
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'admin'])
+    ->name('dashboard');
 
 // Profile Routes
 Route::middleware(['auth', 'admin'])->group(function () {
@@ -20,9 +75,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
 // Admin Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard'); // This should point to the admin dashboard
-    })->name('admin.dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
     Route::get('/search', [\App\Http\Controllers\Admin\SearchController::class, 'index'])->name('admin.search');
 
@@ -35,48 +88,80 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('fares', [\App\Http\Controllers\Admin\FareController::class, 'index'])->name('fares.index');
     Route::post('fares', [\App\Http\Controllers\Admin\FareController::class, 'store'])->name('fares.store');
     
-    // PRD-aligned placeholders for upcoming admin modules
-    Route::get('bookings', function () {
-        return view('admin.coming-soon', [
-            'title' => 'Bookings & Trips',
-            'description' => 'Operational booking visibility, filters, and manual overrides will live here.',
-        ]);
-    })->name('admin.bookings');
+    // Bookings & Trips
+    Route::get('bookings', [BookingController::class, 'index'])->name('admin.bookings');
+    Route::get('bookings/{reference}', [BookingController::class, 'show'])->name('admin.bookings.show');
 
-    Route::get('standby-points', function () {
-        return view('admin.coming-soon', [
-            'title' => 'Standby Points',
-            'description' => 'LGU/TODA approved standby points and geofences management.',
-        ]);
-    })->name('admin.standby-points');
+    // Standby Points
+    Route::get('standby-points', [StandbyPointController::class, 'index'])->name('admin.standby-points');
 
+    // Disputes
     Route::get('disputes', function () {
-        return view('admin.coming-soon', [
-            'title' => 'Disputes',
-            'description' => 'Fare disputes and trip incident resolution workspace.',
-        ]);
+        return view('admin.disputes.index');
     })->name('admin.disputes');
 
+    // SOS Alerts
     Route::get('sos-alerts', function () {
-        return view('admin.coming-soon', [
-            'title' => 'SOS Alerts',
-            'description' => 'Active SOS alerts, acknowledgement, and escalation history.',
-        ]);
+        return view('admin.sos.index');
     })->name('admin.sos');
 
+    // Analytics
     Route::get('analytics', function () {
-        return view('admin.coming-soon', [
-            'title' => 'Analytics',
-            'description' => 'KPI dashboards, heatmaps, and exports aligned with PRD reporting.',
-        ]);
+        return view('admin.analytics.index');
     })->name('admin.analytics');
 
+    // Audit Logs
     Route::get('audit-logs', function () {
-        return view('admin.coming-soon', [
-            'title' => 'Audit Logs',
-            'description' => 'Immutable admin actions log with filters and exports.',
-        ]);
+        return view('admin.audit-logs.index');
     })->name('admin.audit-logs');
 });
 
 require __DIR__.'/auth.php';
+
+// Mockups routing (static HTML/CSS/JS under /mockups)
+Route::get('/mockups/{path?}', function (?string $path = null) {
+    $base = base_path('mockups');
+
+    $path = $path ?: 'index.html';
+    $path = ltrim($path, '/');
+
+    // Prevent path traversal
+    if (Str::contains($path, ['..', '\\'])) {
+        abort(404);
+    }
+
+    $full = $base . DIRECTORY_SEPARATOR . $path;
+
+    // Support directory paths by serving index.html
+    if (is_dir($full)) {
+        $full = rtrim($full, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'index.html';
+    }
+
+    if (!is_file($full)) {
+        abort(404);
+    }
+
+    $ext = strtolower(pathinfo($full, PATHINFO_EXTENSION));
+    $allowed = ['html', 'css', 'js', 'png', 'jpg', 'jpeg', 'svg', 'webp', 'gif', 'ico'];
+    if (!in_array($ext, $allowed, true)) {
+        abort(404);
+    }
+
+    $contentTypes = [
+        'html' => 'text/html; charset=UTF-8',
+        'css' => 'text/css; charset=UTF-8',
+        'js' => 'text/javascript; charset=UTF-8',
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'svg' => 'image/svg+xml',
+        'webp' => 'image/webp',
+        'gif' => 'image/gif',
+        'ico' => 'image/x-icon',
+    ];
+
+    return response()->file($full, [
+        'Content-Type' => $contentTypes[$ext] ?? 'application/octet-stream',
+        'Cache-Control' => 'no-store',
+    ]);
+})->where('path', '.*');

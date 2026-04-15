@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TricyKab — Incoming Offer</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="../shared/data.js"></script>
+    <script src="../shared/app.js"></script>
+</head>
+<body>
+<div class="phone-frame">
+    <div class="status-bar" style="background:#1e1b4b;"><span class="time" style="color:#fff;">6:12</span><div class="icons"><span class="material-icons-outlined" style="font-size:14px; color:#fff;">signal_cellular_alt</span><span class="material-icons-outlined" style="font-size:14px; color:#fff;">wifi</span><span class="material-icons-outlined" style="font-size:14px; color:#fff;">battery_full</span></div></div>
+
+    <!-- Offer Header -->
+    <div style="background:linear-gradient(135deg, #1e1b4b, #312e81); padding:20px; text-align:center;">
+        <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:0.06em;">New Ride Request</p>
+        <p style="font-size:22px; font-weight:800; color:#fff; margin-top:4px;">Booking Offer</p>
+    </div>
+
+    <div class="screen-content" style="padding-top:16px;">
+        <!-- Countdown Timer -->
+        <div style="text-align:center; margin-bottom:20px;">
+            <div class="countdown" style="margin:0 auto;" id="countdown">12</div>
+            <p style="font-size:11px; color:var(--text-muted); margin-top:8px;">seconds to respond</p>
+        </div>
+
+        <!-- Offer Card -->
+        <div class="card">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                <span class="material-icons-outlined" style="color:var(--success); font-size:18px;">my_location</span>
+                <span style="font-size:13px; font-weight:600;">Kabacan Public Market</span>
+            </div>
+            <div style="border-left:2px dashed var(--border); height:12px; margin-left:9px;"></div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+                <span class="material-icons-outlined" style="color:var(--danger); font-size:18px;">place</span>
+                <span style="font-size:13px; font-weight:600;">USM Main Gate</span>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="grid-2">
+                <div>
+                    <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Ride Type</p>
+                    <span class="badge badge-shared mt-4">SHARED</span>
+                </div>
+                <div style="text-align:right;">
+                    <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Est. Fare</p>
+                    <p style="font-size:22px; font-weight:800; color:var(--primary); margin-top:4px;">₱35.00</p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="grid-2">
+                <div>
+                    <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Distance</p>
+                    <p style="font-size:14px; font-weight:700; margin-top:2px;">3.2 km</p>
+                </div>
+                <div style="text-align:right;">
+                    <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Est. Duration</p>
+                    <p style="font-size:14px; font-weight:700; margin-top:2px;">~13 min</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Preview -->
+        <div class="map-placeholder" style="height:140px; margin-bottom:16px;">
+            <span class="material-icons-outlined" style="font-size:28px;">map</span>
+            <span>Pickup: 1.2 km from you</span>
+        </div>
+
+        <!-- CTA Buttons -->
+        <div style="display:flex; gap:12px;">
+            <a href="02-home.html" class="btn btn-danger" style="flex:1;">
+                <span class="material-icons-outlined" style="font-size:20px;">close</span>
+                Decline
+            </a>
+            <a href="04-assigned-pickup.html" class="btn btn-success" style="flex:1;">
+                <span class="material-icons-outlined" style="font-size:20px;">check</span>
+                Accept
+            </a>
+        </div>
+    </div>
+</div>
+<script>
+let time = 12;
+const el = document.getElementById('countdown');
+setInterval(() => { if(time > 0) { time--; el.textContent = time; } }, 1000);
+</script>
+</body>
+</html>

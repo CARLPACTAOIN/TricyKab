@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TricyKab — Driver Login</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="../shared/data.js"></script>
+    <script src="../shared/app.js"></script>
+</head>
+<body>
+<div class="phone-frame">
+    <div class="status-bar"><span class="time">6:00</span><div class="icons"><span class="material-icons-outlined" style="font-size:14px">signal_cellular_alt</span><span class="material-icons-outlined" style="font-size:14px">wifi</span><span class="material-icons-outlined" style="font-size:14px">battery_full</span></div></div>
+
+    <div class="screen-content" style="display:flex; flex-direction:column; justify-content:center; padding-top:40px;">
+        <div style="text-align:center; margin-bottom:48px;">
+            <div style="width:72px; height:72px; background:var(--primary); border-radius:20px; display:inline-flex; align-items:center; justify-content:center; margin-bottom:16px; box-shadow:0 8px 24px rgba(98,88,202,0.3);">
+                <span class="material-icons-outlined" style="font-size:36px; color:#fff;">electric_rickshaw</span>
+            </div>
+            <h1 style="font-size:26px; font-weight:800; letter-spacing:-0.03em;">TricyKab</h1>
+            <p style="font-size:14px; font-weight:600; color:var(--primary); margin-top:4px;">Driver Portal</p>
+            <p style="font-size:11px; color:var(--text-muted); margin-top:8px; max-width:240px; margin-inline:auto;">Only approved & verified TODA drivers can sign in.</p>
+        </div>
+
+        <div class="card">
+            <p style="font-size:14px; font-weight:600; margin-bottom:16px;">Sign in with your registered number</p>
+            <div class="input-group">
+                <label>Registered Mobile</label>
+                <div class="input-field-icon">
+                    <span class="material-icons-outlined">phone</span>
+                    <input type="tel" class="input-field" placeholder="+63 918 222 3333" value="+63 918 222 3333">
+                </div>
+            </div>
+            <a href="02-home.html" class="btn btn-primary">
+                <span class="material-icons-outlined" style="font-size:18px;">verified_user</span>
+                Sign In as Driver
+            </a>
+        </div>
+
+        <p style="text-align:center; font-size:11px; color:var(--text-muted); margin-top:32px;">Not registered? Contact your TODA President.</p>
+    </div>
+</div>
+</body>
+</html>

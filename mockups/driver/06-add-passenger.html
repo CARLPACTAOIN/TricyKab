@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TricyKab — Add Passenger</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="../shared/data.js"></script>
+    <script src="../shared/app.js"></script>
+</head>
+<body>
+<div class="phone-frame">
+    <div class="status-bar" style="background:var(--success);"><span class="time" style="color:#fff;">6:20</span><div class="icons"><span class="material-icons-outlined" style="font-size:14px; color:#fff;">signal_cellular_alt</span><span class="material-icons-outlined" style="font-size:14px; color:#fff;">wifi</span><span class="material-icons-outlined" style="font-size:14px; color:#fff;">battery_full</span></div></div>
+
+    <div style="background:var(--success); padding:12px 20px 16px;">
+        <p style="font-size:11px; color:rgba(255,255,255,0.7); font-weight:600; text-transform:uppercase;">Shared Ride</p>
+        <p style="font-size:16px; font-weight:800; color:#fff;">Add Street Passenger</p>
+    </div>
+
+    <div class="screen-content" style="padding-top:20px;">
+        <!-- Info Banner -->
+        <div class="card card-sm" style="background:var(--bg-subtle); display:flex; align-items:start; gap:10px; margin-bottom:16px;">
+            <span class="material-icons-outlined" style="color:var(--info); font-size:18px; flex-shrink:0; margin-top:2px;">info</span>
+            <p style="font-size:12px; color:var(--text-secondary);">Board a walk-up passenger during a shared ride. Capacity is tracked automatically.</p>
+        </div>
+
+        <!-- Current Capacity -->
+        <div class="card">
+            <p class="section-title">Current Capacity</p>
+            <div class="capacity-bar mb-8">
+                <div class="fill" style="width:25%; background:var(--success);"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+                <span style="font-size:12px; color:var(--text-muted);">1 of 4 seats occupied</span>
+                <span style="font-size:12px; font-weight:700; color:var(--success);">3 available</span>
+            </div>
+            <div class="divider"></div>
+            <div style="display:flex; align-items:center; gap:10px; padding-top:4px;">
+                <div class="avatar avatar-success avatar-sm">MC</div>
+                <div>
+                    <p style="font-size:12px; font-weight:600;">Maria Clara</p>
+                    <p style="font-size:10px; color:var(--text-muted);">Market → USM</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Passenger Form -->
+        <div class="card">
+            <p class="section-title">New Passenger</p>
+            <div class="input-group">
+                <label>Number of Passengers</label>
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <button style="width:44px; height:44px; border:2px solid var(--border); border-radius:12px; background:var(--bg-card); font-size:20px; font-weight:700; cursor:pointer; color:var(--text-primary);" onclick="changePax(-1)">−</button>
+                    <span style="font-size:28px; font-weight:800; color:var(--primary); min-width:30px; text-align:center;" id="paxCount">1</span>
+                    <button style="width:44px; height:44px; border:2px solid var(--primary); border-radius:12px; background:var(--primary-10); font-size:20px; font-weight:700; cursor:pointer; color:var(--primary);" onclick="changePax(1)">+</button>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Destination (optional)</label>
+                <div class="input-field-icon">
+                    <span class="material-icons-outlined">place</span>
+                    <input type="text" class="input-field" placeholder="Where are they going?" value="USM Main Gate">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Notes (optional)</label>
+                <input type="text" class="input-field" placeholder="e.g., student, elderly, with child" value="">
+            </div>
+        </div>
+
+        <!-- Updated Capacity Preview -->
+        <div class="card card-sm" style="background:var(--primary-10);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; font-weight:600; color:var(--primary);">After boarding:</span>
+                <span style="font-size:14px; font-weight:800; color:var(--primary);" id="newCapacity">2 / 4 seats</span>
+            </div>
+            <div class="capacity-bar mt-8">
+                <div class="fill" style="width:50%; background:var(--primary);" id="newCapacityBar"></div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <a href="05-trip-in-progress.html" class="btn btn-success mt-12">
+            <span class="material-icons-outlined" style="font-size:18px;">person_add</span>
+            Confirm & Board
+        </a>
+        <a href="05-trip-in-progress.html" class="btn btn-ghost mt-8">Cancel</a>
+    </div>
+</div>
+<script>
+let pax = 1;
+function changePax(d) {
+    pax = Math.max(1, Math.min(3, pax + d));
+    document.getElementById('paxCount').textContent = pax;
+    const total = 1 + pax;
+    document.getElementById('newCapacity').textContent = total + ' / 4 seats';
+    document.getElementById('newCapacityBar').style.width = (total * 25) + '%';
+}
+</script>
+</body>
+</html>

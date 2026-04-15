@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TricyKab — Trip History</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="../shared/data.js"></script>
+    <script src="../shared/app.js"></script>
+</head>
+<body>
+<div class="phone-frame">
+    <div class="status-bar"><span class="time">9:56</span><div class="icons"><span class="material-icons-outlined" style="font-size:14px">signal_cellular_alt</span><span class="material-icons-outlined" style="font-size:14px">wifi</span><span class="material-icons-outlined" style="font-size:14px">battery_full</span></div></div>
+    <div class="app-header">
+        <div class="brand"><div class="logo"><span class="material-icons-outlined">electric_rickshaw</span></div><span>TricyKab</span></div>
+        <span class="material-icons-outlined" style="color:var(--text-muted);">filter_list</span>
+    </div>
+
+    <div class="screen-content">
+        <h2 style="font-size:18px; font-weight:800; margin-bottom:4px;">Trip History</h2>
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Your recent trips</p>
+
+        <div class="card card-flush">
+            <!-- Trip 1 -->
+            <div class="trip-item">
+                <div style="width:36px; height:36px; background:var(--success-light); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <span class="material-icons-outlined" style="font-size:18px; color:var(--success);">check_circle</span>
+                </div>
+                <div class="trip-route">
+                    <p class="from-to">Kabacan Market → USM Main Gate</p>
+                    <p class="trip-date">Today, 9:10 AM · <span class="badge badge-shared" style="font-size:8px; padding:2px 6px;">SHARED</span></p>
+                </div>
+                <div class="trip-fare">₱35.00</div>
+            </div>
+
+            <!-- Trip 2 -->
+            <div class="trip-item">
+                <div style="width:36px; height:36px; background:var(--success-light); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <span class="material-icons-outlined" style="font-size:18px; color:var(--success);">check_circle</span>
+                </div>
+                <div class="trip-route">
+                    <p class="from-to">USM South Gate → Poblacion Terminal</p>
+                    <p class="trip-date">Yesterday, 5:15 PM · <span class="badge badge-shared" style="font-size:8px; padding:2px 6px;">SHARED</span></p>
+                </div>
+                <div class="trip-fare">₱35.00</div>
+            </div>
+
+            <!-- Trip 3 -->
+            <div class="trip-item">
+                <div style="width:36px; height:36px; background:var(--success-light); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <span class="material-icons-outlined" style="font-size:18px; color:var(--success);">check_circle</span>
+                </div>
+                <div class="trip-route">
+                    <p class="from-to">Poblacion Terminal → Nongnongan Church</p>
+                    <p class="trip-date">Yesterday, 2:30 PM · <span class="badge badge-special" style="font-size:8px; padding:2px 6px;">SPECIAL</span></p>
+                </div>
+                <div class="trip-fare">₱95.00</div>
+            </div>
+
+            <!-- Trip 4: Cancelled -->
+            <div class="trip-item">
+                <div style="width:36px; height:36px; background:var(--danger-light); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <span class="material-icons-outlined" style="font-size:18px; color:var(--danger);">cancel</span>
+                </div>
+                <div class="trip-route">
+                    <p class="from-to">Osias Market → Kabacan Bus Terminal</p>
+                    <p class="trip-date">Apr 13, 8:45 AM · <span class="badge badge-cancelled" style="font-size:8px; padding:2px 6px;">CANCELLED</span></p>
+                </div>
+                <div class="trip-fare" style="color:var(--text-muted); text-decoration:line-through;">₱40.00</div>
+            </div>
+
+            <!-- Trip 5 -->
+            <div class="trip-item">
+                <div style="width:36px; height:36px; background:var(--success-light); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <span class="material-icons-outlined" style="font-size:18px; color:var(--success);">check_circle</span>
+                </div>
+                <div class="trip-route">
+                    <p class="from-to">Kabacan National HS → Osias Market</p>
+                    <p class="trip-date">Apr 12, 7:20 AM · <span class="badge badge-shared" style="font-size:8px; padding:2px 6px;">SHARED</span></p>
+                </div>
+                <div class="trip-fare">₱35.00</div>
+            </div>
+
+            <!-- Trip 6 -->
+            <div class="trip-item">
+                <div style="width:36px; height:36px; background:var(--success-light); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <span class="material-icons-outlined" style="font-size:18px; color:var(--success);">check_circle</span>
+                </div>
+                <div class="trip-route">
+                    <p class="from-to">Poblacion Terminal → Kabacan Public Market</p>
+                    <p class="trip-date">Apr 11, 4:00 PM · <span class="badge badge-shared" style="font-size:8px; padding:2px 6px;">SHARED</span></p>
+                </div>
+                <div class="trip-fare">₱35.00</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="02-book-ride.html"><span class="material-icons-outlined">pin_drop</span>Book</a>
+        <a href="07-trip-history.html" class="active"><span class="material-icons-outlined">history</span>Trips</a>
+        <div class="nav-item"><span class="material-icons-outlined">account_circle</span>Profile</div>
+    </div>
+</div>
+</body>
+</html>

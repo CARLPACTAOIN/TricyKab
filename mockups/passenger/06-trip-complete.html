@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TricyKab — Trip Complete</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="../shared/data.js"></script>
+    <script src="../shared/app.js"></script>
+</head>
+<body>
+<div class="phone-frame">
+    <div class="status-bar"><span class="time">9:55</span><div class="icons"><span class="material-icons-outlined" style="font-size:14px">signal_cellular_alt</span><span class="material-icons-outlined" style="font-size:14px">wifi</span><span class="material-icons-outlined" style="font-size:14px">battery_full</span></div></div>
+
+    <div class="screen-content" style="padding-top:24px;">
+        <!-- Success Icon -->
+        <div style="text-align:center; margin-bottom:24px;">
+            <div style="width:72px; height:72px; background:var(--success-light); border-radius:50%; display:inline-flex; align-items:center; justify-content:center; margin-bottom:12px;">
+                <span class="material-icons-outlined" style="font-size:36px; color:var(--success);">check_circle</span>
+            </div>
+            <h2 style="font-size:20px; font-weight:800;">Trip Complete!</h2>
+            <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">You've arrived at USM Main Gate</p>
+        </div>
+
+        <!-- Trip Summary Card -->
+        <div class="card">
+            <div class="info-row">
+                <span class="label">Duration</span>
+                <span class="value">13 min 23 sec</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Distance</span>
+                <span class="value">3.2 km</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Route</span>
+                <span class="value" style="font-size:12px;">Kabacan Market → USM</span>
+            </div>
+            <div class="divider"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-top:4px;">
+                <div>
+                    <p style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Final Fare</p>
+                </div>
+                <p style="font-size:28px; font-weight:800; color:var(--primary);">₱35.00</p>
+            </div>
+        </div>
+
+        <!-- Payment Card -->
+        <div class="card">
+            <div class="info-row">
+                <span class="label">Payment</span>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="material-icons-outlined" style="font-size:16px; color:var(--success);">payments</span>
+                    <span class="value">CASH</span>
+                </div>
+            </div>
+            <div class="info-row">
+                <span class="label">Status</span>
+                <span class="badge badge-completed">COMPLETED</span>
+            </div>
+            <div class="info-row" style="border:none;">
+                <span class="label">Receipt</span>
+                <span class="value text-primary" style="font-size:13px;">RCT-2026-000042</span>
+            </div>
+        </div>
+
+        <!-- Rate Driver -->
+        <div class="card" style="text-align:center;">
+            <p style="font-size:14px; font-weight:700; margin-bottom:4px;">Rate your driver</p>
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">How was your ride with Mariano?</p>
+            <div class="stars" style="justify-content:center; gap:8px; font-size:32px; margin-bottom:16px;">
+                <span class="material-icons-outlined filled" style="font-size:32px; cursor:pointer;">star</span>
+                <span class="material-icons-outlined filled" style="font-size:32px; cursor:pointer;">star</span>
+                <span class="material-icons-outlined filled" style="font-size:32px; cursor:pointer;">star</span>
+                <span class="material-icons-outlined filled" style="font-size:32px; cursor:pointer;">star</span>
+                <span class="material-icons-outlined" style="font-size:32px; color:#e2e8f0; cursor:pointer;">star</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                <div class="avatar avatar-primary avatar-sm">MR</div>
+                <div style="text-align:left;">
+                    <p style="font-size:13px; font-weight:600;">Mariano Ramos</p>
+                    <p style="font-size:11px; color:var(--text-muted);">Poblacion TODA · KAB-1234</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTAs -->
+        <div style="display:flex; gap:12px; margin-top:8px;">
+            <button class="btn btn-outline" style="flex:1;">
+                <span class="material-icons-outlined" style="font-size:16px;">receipt</span>
+                Receipt
+            </button>
+            <a href="02-book-ride.html" class="btn btn-primary" style="flex:1;">
+                <span class="material-icons-outlined" style="font-size:16px;">refresh</span>
+                Book Again
+            </a>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="02-book-ride.html"><span class="material-icons-outlined">pin_drop</span>Book</a>
+        <a href="07-trip-history.html"><span class="material-icons-outlined">history</span>Trips</a>
+        <div class="nav-item"><span class="material-icons-outlined">account_circle</span>Profile</div>
+    </div>
+</div>
+</body>
+</html>

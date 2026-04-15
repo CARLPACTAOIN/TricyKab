@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TricyKab — Searching Driver</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="../shared/data.js"></script>
+    <script src="../shared/app.js"></script>
+</head>
+<body>
+<div class="phone-frame">
+    <div class="status-bar"><span class="time">9:42</span><div class="icons"><span class="material-icons-outlined" style="font-size:14px">signal_cellular_alt</span><span class="material-icons-outlined" style="font-size:14px">wifi</span><span class="material-icons-outlined" style="font-size:14px">battery_full</span></div></div>
+    <div class="app-header">
+        <div class="brand"><div class="logo"><span class="material-icons-outlined">electric_rickshaw</span></div><span>TricyKab</span></div>
+        <span class="badge badge-searching">SEARCHING</span>
+    </div>
+
+    <div class="screen-content" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding-top:20px;">
+        <!-- Reference -->
+        <p style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:32px;">Ref: BK-2026-0030</p>
+
+        <!-- Animated Pulse -->
+        <div class="pulse-dot" style="margin-bottom:32px;">
+            <div class="inner">
+                <span class="material-icons-outlined" style="font-size:22px;">search</span>
+            </div>
+        </div>
+
+        <h2 style="font-size:18px; font-weight:800; margin-bottom:8px;">Finding your driver...</h2>
+        <p style="font-size:13px; color:var(--text-muted); text-align:center; max-width:260px; margin-bottom:32px;">We're matching you with the nearest available driver in the Poblacion area.</p>
+
+        <!-- Trip Summary Card -->
+        <div class="card" style="width:100%;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                <span class="material-icons-outlined" style="color:var(--success); font-size:18px;">my_location</span>
+                <span style="font-size:13px; font-weight:600;">Kabacan Public Market</span>
+            </div>
+            <div style="border-left:2px dashed var(--border); height:12px; margin-left:9px;"></div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+                <span class="material-icons-outlined" style="color:var(--danger); font-size:18px;">place</span>
+                <span style="font-size:13px; font-weight:600;">USM Main Gate</span>
+            </div>
+            <div class="divider"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span class="badge badge-shared">SHARED</span>
+                </div>
+                <span style="font-size:20px; font-weight:800; color:var(--primary);">₱35.00</span>
+            </div>
+        </div>
+
+        <!-- Cancel CTA -->
+        <a href="02-book-ride.html" class="btn btn-outline" style="margin-top:12px;">
+            <span class="material-icons-outlined" style="font-size:18px;">close</span>
+            Cancel Booking
+        </a>
+
+        <!-- Auto-advance link -->
+        <a href="04-driver-assigned.html" class="btn btn-ghost mt-20" style="font-size:11px;">
+            <span class="material-icons-outlined" style="font-size:14px;">arrow_forward</span>
+            Continue
+        </a>
+    </div>
+</div>
+</body>
+</html>

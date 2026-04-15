@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TricyKab — Driver Home</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="../shared/data.js"></script>
+    <script src="../shared/app.js"></script>
+</head>
+<body>
+<div class="phone-frame">
+    <div class="status-bar"><span class="time">6:05</span><div class="icons"><span class="material-icons-outlined" style="font-size:14px">signal_cellular_alt</span><span class="material-icons-outlined" style="font-size:14px">wifi</span><span class="material-icons-outlined" style="font-size:14px">battery_full</span></div></div>
+    <div class="app-header">
+        <div class="brand"><div class="logo"><span class="material-icons-outlined">electric_rickshaw</span></div><span>TricyKab</span></div>
+        <span class="material-icons-outlined" style="color:var(--text-muted);">notifications</span>
+    </div>
+
+    <div class="screen-content">
+        <!-- Driver Profile & Toggle -->
+        <div class="card" style="padding:20px;">
+            <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+                <div class="avatar avatar-primary">MR</div>
+                <div style="flex:1;">
+                    <p style="font-size:16px; font-weight:800;">Mariano Ramos</p>
+                    <p style="font-size:12px; color:var(--text-muted);">Poblacion TODA · KAB-1234</p>
+                </div>
+                <span class="badge badge-online" id="statusBadge">ONLINE</span>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-subtle); padding:14px 16px; border-radius:var(--radius-sm);">
+                <div>
+                    <p style="font-size:13px; font-weight:700;">Availability</p>
+                    <p style="font-size:11px; color:var(--text-muted);">You're accepting rides</p>
+                </div>
+                <div class="toggle on" id="availToggle" onclick="toggleAvail()">
+                    <div class="knob"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Stats -->
+        <div class="section-title">Today's Performance</div>
+        <div class="card" style="padding:0; overflow:hidden;">
+            <div class="grid-2" style="gap:0;">
+                <div class="stat-card" style="border-right:1px solid var(--border-light); border-bottom:1px solid var(--border-light);">
+                    <p class="stat-value">8</p>
+                    <p class="stat-label">Trips</p>
+                </div>
+                <div class="stat-card" style="border-bottom:1px solid var(--border-light);">
+                    <p class="stat-value text-primary">₱620</p>
+                    <p class="stat-label">Earned</p>
+                </div>
+                <div class="stat-card" style="border-right:1px solid var(--border-light);">
+                    <p class="stat-value">6.2h</p>
+                    <p class="stat-label">Online</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-value text-success">92%</p>
+                    <p class="stat-label">Accept Rate</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Earnings Snapshot -->
+        <div class="section-title mt-16">Weekly Earnings</div>
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <div>
+                    <p style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">This Week</p>
+                    <p style="font-size:24px; font-weight:800; color:var(--primary);">₱4,380</p>
+                </div>
+                <div style="text-align:right;">
+                    <p style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Last Week</p>
+                    <p style="font-size:16px; font-weight:700; color:var(--text-secondary);">₱3,920</p>
+                </div>
+            </div>
+            <!-- Mini bar chart -->
+            <div style="display:flex; align-items:flex-end; gap:6px; height:60px;">
+                <div style="flex:1; background:var(--primary-20); border-radius:4px; height:35%;"></div>
+                <div style="flex:1; background:var(--primary-20); border-radius:4px; height:55%;"></div>
+                <div style="flex:1; background:var(--primary-20); border-radius:4px; height:45%;"></div>
+                <div style="flex:1; background:var(--primary-20); border-radius:4px; height:70%;"></div>
+                <div style="flex:1; background:var(--primary-20); border-radius:4px; height:85%;"></div>
+                <div style="flex:1; background:var(--primary-20); border-radius:4px; height:60%;"></div>
+                <div style="flex:1; background:var(--primary); border-radius:4px; height:90%;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-top:4px;">
+                <span style="font-size:9px; color:var(--text-muted);">Mon</span>
+                <span style="font-size:9px; color:var(--text-muted);">Tue</span>
+                <span style="font-size:9px; color:var(--text-muted);">Wed</span>
+                <span style="font-size:9px; color:var(--text-muted);">Thu</span>
+                <span style="font-size:9px; color:var(--text-muted);">Fri</span>
+                <span style="font-size:9px; color:var(--text-muted);">Sat</span>
+                <span style="font-size:9px; font-weight:700; color:var(--primary);">Today</span>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="grid-2 mt-12">
+            <a href="#" class="card card-sm" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit;">
+                <span class="material-icons-outlined" style="color:var(--primary);">history</span>
+                <span style="font-size:13px; font-weight:600;">Trip History</span>
+            </a>
+            <a href="03-incoming-offer.html" class="card card-sm" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit;">
+                <span class="material-icons-outlined" style="color:var(--warning);">notifications_active</span>
+                <span style="font-size:13px; font-weight:600;">Incoming Offer</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="02-home.html" class="active"><span class="material-icons-outlined">home</span>Home</a>
+        <a href="#"><span class="material-icons-outlined">history</span>Trips</a>
+        <div class="nav-item"><span class="material-icons-outlined">account_circle</span>Profile</div>
+    </div>
+</div>
+<script>
+function toggleAvail() {
+    const t = document.getElementById('availToggle');
+    const b = document.getElementById('statusBadge');
+    t.classList.toggle('on');
+    if(t.classList.contains('on')) { b.textContent='ONLINE'; b.className='badge badge-online'; }
+    else { b.textContent='OFFLINE'; b.className='badge badge-offline'; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TricyKab — Navigate to Pickup</title>
+    <link rel="stylesheet" href="../shared/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <script src="../shared/data.js"></script>
+    <script src="../shared/app.js"></script>
+</head>
+<body>
+<div class="phone-frame">
+    <div class="status-bar" style="background:var(--primary);"><span class="time" style="color:#fff;">6:13</span><div class="icons"><span class="material-icons-outlined" style="font-size:14px; color:#fff;">signal_cellular_alt</span><span class="material-icons-outlined" style="font-size:14px; color:#fff;">wifi</span><span class="material-icons-outlined" style="font-size:14px; color:#fff;">battery_full</span></div></div>
+
+    <div style="background:var(--primary); padding:12px 20px 16px; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+            <p style="font-size:11px; color:rgba(255,255,255,0.7); font-weight:600; text-transform:uppercase;">Navigate to Pickup</p>
+            <p style="font-size:16px; font-weight:800; color:#fff;">Kabacan Public Market</p>
+        </div>
+        <span class="badge" style="background:rgba(255,255,255,0.2); color:#fff;">ASSIGNED</span>
+    </div>
+
+    <div class="screen-content" style="padding-top:16px;">
+        <!-- Map -->
+        <div class="map-placeholder" style="height:240px; margin-bottom:16px;">
+            <span class="material-icons-outlined">directions</span>
+            <span>Navigation to pickup point</span>
+            <!-- Markers -->
+            <div style="position:absolute; top:25%; left:60%; z-index:2;">
+                <div style="width:32px; height:32px; background:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(98,88,202,0.4);">
+                    <span class="material-icons-outlined" style="color:#fff; font-size:16px;">electric_rickshaw</span>
+                </div>
+            </div>
+            <div style="position:absolute; bottom:30%; left:30%; z-index:2;">
+                <span class="material-icons-outlined" style="color:var(--success); font-size:32px;">place</span>
+            </div>
+        </div>
+
+        <!-- Passenger Card -->
+        <div class="card" style="padding:16px;">
+            <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px;">
+                <div class="avatar avatar-success">MC</div>
+                <div style="flex:1;">
+                    <p style="font-size:15px; font-weight:700;">Maria Clara</p>
+                    <p style="font-size:12px; color:var(--text-muted);">Passenger</p>
+                </div>
+                <button class="btn btn-icon btn-outline" style="width:40px; height:40px; flex-shrink:0;">
+                    <span class="material-icons-outlined" style="font-size:18px;">phone</span>
+                </button>
+            </div>
+            <div class="divider"></div>
+            <div class="info-row">
+                <span class="label">Pickup</span>
+                <span class="value" style="font-size:12px;">Kabacan Public Market</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Destination</span>
+                <span class="value" style="font-size:12px;">USM Main Gate</span>
+            </div>
+            <div class="info-row" style="border:none;">
+                <span class="label">Ride</span>
+                <div><span class="badge badge-shared">SHARED</span> <span style="font-weight:700; color:var(--primary); margin-left:8px;">₱35.00</span></div>
+            </div>
+        </div>
+
+        <!-- Pickup Notes -->
+        <div class="card card-sm" style="background:var(--bg-subtle); display:flex; align-items:start; gap:10px;">
+            <span class="material-icons-outlined" style="color:var(--warning); font-size:18px; flex-shrink:0; margin-top:2px;">info</span>
+            <p style="font-size:12px; color:var(--text-secondary);">Pickup note: <strong>Near the south gate entrance, beside the fruit stall.</strong></p>
+        </div>
+
+        <!-- Arrive CTA -->
+        <a href="05-trip-in-progress.html" class="btn btn-primary mt-12">
+            <span class="material-icons-outlined" style="font-size:20px;">flag</span>
+            I've Arrived at Pickup
+        </a>
+    </div>
+</div>
+</body>
+</html>
