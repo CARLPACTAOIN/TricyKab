@@ -59,6 +59,8 @@
         </main>
     </div>
     
+    <!-- Charts Library -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <!-- Scripts -->
     @yield('scripts')
 </body>
