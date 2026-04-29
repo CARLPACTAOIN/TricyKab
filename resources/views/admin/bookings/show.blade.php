@@ -89,10 +89,11 @@
                 </div>
                 <div
                     class="relative h-64 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800"
+                    data-map-root
                     data-map-context="booking-route"
                     data-map-payload='@json($routeMapPayload)'
                 >
-                    <div data-map-canvas class="absolute inset-0"></div>
+                    <div data-map-canvas class="h-full w-full min-h-[16rem]"></div>
                 </div>
                 <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="bg-slate-50 dark:bg-slate-800 p-3 rounded-lg">

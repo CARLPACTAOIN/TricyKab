@@ -148,10 +148,11 @@
             </div>
             <div
                 class="relative h-64 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900"
+                data-map-root
                 data-map-context="dashboard-heatmap"
                 data-map-payload='@json($pickupMapPayload)'
             >
-                <div data-map-canvas class="absolute inset-0"></div>
+                <div data-map-canvas class="h-full w-full min-h-[16rem]"></div>
             </div>
         </div>
         <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -161,10 +162,11 @@
             </div>
             <div
                 class="relative h-64 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900"
+                data-map-root
                 data-map-context="dashboard-heatmap"
                 data-map-payload='@json($destinationMapPayload)'
             >
-                <div data-map-canvas class="absolute inset-0"></div>
+                <div data-map-canvas class="h-full w-full min-h-[16rem]"></div>
             </div>
         </div>
     </div>
