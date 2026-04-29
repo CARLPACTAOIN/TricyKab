@@ -60,7 +60,7 @@
                     <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 font-mono">{{ $driver->license_number }}</td>
                     <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
                         <div>{{ $driver->contact_number ?? 'N/A' }}</div>
-                        <div class="text-xs text-slate-400">{{ Str::limit($driver->email, 20) }}</div>
+                        <div class="text-xs text-slate-400">{{ \Illuminate\Support\Str::limit($driver->address, 24) }}</div>
                     </td>
                      <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
                         @if($driver->tricycle)
@@ -82,6 +82,9 @@
                     </td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <a href="{{ route('drivers.show', $driver->id) }}" class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md text-slate-400 hover:text-primary transition-colors" title="View">
+                                <span class="material-icons-outlined text-xl">visibility</span>
+                            </a>
                             <button type="button" onclick="document.getElementById('editDriverModal-{{ $driver->id }}').classList.remove('hidden')" class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md text-slate-400 hover:text-amber-600 transition-colors" title="Edit">
                                 <span class="material-icons-outlined text-xl">edit</span>
                             </button>
