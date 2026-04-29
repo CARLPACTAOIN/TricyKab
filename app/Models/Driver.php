@@ -40,6 +40,11 @@ class Driver extends Model
         return $this->hasMany(Booking::class);
     }
 
+    public function disputes()
+    {
+        return $this->hasMany(Dispute::class);
+    }
+
     // --- Accessors ---
 
     public function getFullNameAttribute(): string

@@ -91,6 +91,11 @@ class Booking extends Model
         return $this->hasOne(Payment::class);
     }
 
+    public function disputes()
+    {
+        return $this->hasMany(Dispute::class);
+    }
+
     public function originBarangay()
     {
         return $this->belongsTo(Barangay::class, 'origin_barangay_id');

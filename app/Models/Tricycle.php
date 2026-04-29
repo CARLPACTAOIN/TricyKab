@@ -12,6 +12,8 @@ class Tricycle extends Model
         'toda_id',
         'make_model',
         'status',
+        'registration_status',
+        'capacity',
     ];
 
     // --- Relationships ---
