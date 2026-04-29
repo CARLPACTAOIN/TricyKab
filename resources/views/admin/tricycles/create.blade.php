@@ -70,6 +70,24 @@
                                     <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
+                            <div>
+                                <label for="registration_status" class="ti-form-label">LTO Registration Status</label>
+                                <select class="ti-form-select @error('registration_status') !border-red-500 @enderror" id="registration_status" name="registration_status">
+                                    @foreach(['ACTIVE', 'EXPIRED', 'PENDING', 'SUSPENDED'] as $ltoStatus)
+                                        <option value="{{ $ltoStatus }}" {{ old('registration_status', 'ACTIVE') === $ltoStatus ? 'selected' : '' }}>{{ $ltoStatus }}</option>
+                                    @endforeach
+                                </select>
+                                @error('registration_status')
+                                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="capacity" class="ti-form-label">Capacity</label>
+                                <input type="number" class="ti-form-input @error('capacity') !border-red-500 @enderror" id="capacity" name="capacity" min="1" max="8" value="{{ old('capacity', 4) }}">
+                                @error('capacity')
+                                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
                         <div class="mt-4">
                             <button type="submit" class="ti-btn ti-btn-primary-full">Submit</button>
