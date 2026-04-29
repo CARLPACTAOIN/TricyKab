@@ -38,7 +38,7 @@ class AnalyticsController extends Controller
         }
         $totalEarnings = (float) $paymentsQuery->sum('amount');
 
-        $driverQuery = Driver::query()->with(['toda', 'bookings.payment', 'disputes']);
+        $driverQuery = Driver::query()->with(['toda', 'tricycle', 'bookings.payment', 'disputes']);
         if ($todaId) {
             $driverQuery->where('toda_id', $todaId);
         }
@@ -49,20 +49,28 @@ class AnalyticsController extends Controller
                 $rangeBookings = $driver->bookings->where('created_at', '>=', $start);
                 $accepted = $rangeBookings->whereNotNull('accepted_at')->count();
                 $completed = $rangeBookings->where('status', Booking::STATUS_COMPLETED)->count();
+                $cancelled = $rangeBookings->filter(fn (Booking $b) => $b->isCancelled())->count();
                 $earnings = (float) $rangeBookings
                     ->map(fn (Booking $booking) => $booking->payment?->amount)
                     ->filter()
                     ->sum();
+                $completionRate = $accepted > 0 ? round(($completed / $accepted) * 100) : 0;
+                $avgWait = round((float) ($rangeBookings->whereNotNull('accepted_at')->avg(
+                    fn (Booking $b) => $b->created_at?->diffInMinutes($b->accepted_at) ?? 0
+                ) ?? 0), 1);
 
                 return [
                     'driver' => $driver,
                     'accepted' => $accepted,
                     'completed' => $completed,
+                    'cancelled' => $cancelled,
                     'earnings' => $earnings,
+                    'completion_rate' => $completionRate,
+                    'avg_wait' => $avgWait,
                 ];
             })
             ->sortByDesc(fn (array $entry) => ($entry['completed'] * 1000) + $entry['earnings'])
-            ->take(5)
+            ->take(10)
             ->values();
 
         $flaggedDrivers = $drivers
