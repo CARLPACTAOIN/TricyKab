@@ -2,6 +2,10 @@
 
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DisputeController;
+use App\Http\Controllers\Admin\SosAlertController;
+use App\Http\Controllers\Admin\AnalyticsController;
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\StandbyPointController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -96,24 +100,23 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('standby-points', [StandbyPointController::class, 'index'])->name('admin.standby-points');
 
     // Disputes
-    Route::get('disputes', function () {
-        return view('admin.disputes.index');
-    })->name('admin.disputes');
+    Route::get('disputes', [DisputeController::class, 'index'])->name('admin.disputes');
+    Route::patch('disputes/{dispute}', [DisputeController::class, 'update'])->name('admin.disputes.update');
+    Route::patch('disputes', [DisputeController::class, 'bulkUpdate'])->name('admin.disputes.bulk-update');
+    Route::get('disputes-export', [DisputeController::class, 'export'])->name('admin.disputes.export');
 
     // SOS Alerts
-    Route::get('sos-alerts', function () {
-        return view('admin.sos.index');
-    })->name('admin.sos');
+    Route::get('sos-alerts', [SosAlertController::class, 'index'])->name('admin.sos');
+    Route::patch('sos-alerts/{sosAlert}/status', [SosAlertController::class, 'updateStatus'])->name('admin.sos.update-status');
+    Route::patch('sos-alerts/status', [SosAlertController::class, 'bulkUpdateStatus'])->name('admin.sos.bulk-update-status');
+    Route::get('sos-alerts-export', [SosAlertController::class, 'export'])->name('admin.sos.export');
 
     // Analytics
-    Route::get('analytics', function () {
-        return view('admin.analytics.index');
-    })->name('admin.analytics');
+    Route::get('analytics', [AnalyticsController::class, 'index'])->name('admin.analytics');
 
     // Audit Logs
-    Route::get('audit-logs', function () {
-        return view('admin.audit-logs.index');
-    })->name('admin.audit-logs');
+    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs');
+    Route::get('audit-logs-export', [AuditLogController::class, 'export'])->name('admin.audit-logs.export');
 });
 
 require __DIR__.'/auth.php';

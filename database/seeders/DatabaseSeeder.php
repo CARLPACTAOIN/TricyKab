@@ -7,9 +7,12 @@ use App\Models\Barangay;
 use App\Models\Toda;
 use App\Models\Tricycle;
 use App\Models\Driver;
+use App\Models\Dispute;
 use App\Models\FareMatrix;
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Models\SosAlert;
+use App\Models\AuditLog;
 use App\Models\StandbyPoint;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -104,6 +107,8 @@ class DatabaseSeeder extends Seeder
                     'toda_id' => $toda->id,
                     'make_model' => collect(['Honda TMX 125', 'Kawasaki Barako', 'Honda XRM 125', 'Yamaha YTX'])->random(),
                     'status' => $counter <= 18 ? 'active' : 'maintenance',
+                    'registration_status' => $counter <= 16 ? 'ACTIVE' : ($counter <= 18 ? 'PENDING' : 'EXPIRED'),
+                    'capacity' => collect([3, 4, 4, 5])->random(),
                 ]);
                 $counter++;
             }
@@ -344,6 +349,57 @@ class DatabaseSeeder extends Seeder
                 'method' => 'cash',
                 'amount' => $booking->fare_amount,
                 'status' => 'completed',
+            ]);
+        }
+
+        // --- Disputes ---
+        $bookingsWithDrivers = Booking::query()->whereNotNull('driver_id')->take(6)->get();
+        foreach ($bookingsWithDrivers as $index => $booking) {
+            Dispute::create([
+                'booking_id' => $booking->id,
+                'driver_id' => $booking->driver_id,
+                'reported_by_role' => $index % 2 === 0 ? 'PASSENGER' : 'DRIVER',
+                'reported_by_name' => $index % 2 === 0 ? 'Passenger Report '.($index + 1) : 'Driver Report '.($index + 1),
+                'dispute_type' => collect(['FARE', 'NO_SHOW', 'GPS', 'CONDUCT'])->random(),
+                'description' => 'Seeded dispute record for admin workflow testing.',
+                'status' => collect(['OPEN', 'UNDER_REVIEW', 'RESOLVED', 'REJECTED'])->random(),
+                'resolved_by_admin_id' => $admin->id,
+                'resolved_at' => now()->subHours(rand(1, 48)),
+            ]);
+        }
+
+        // --- SOS Alerts ---
+        $sampleSosBookings = Booking::query()->take(4)->get();
+        foreach ($sampleSosBookings as $index => $booking) {
+            SosAlert::create([
+                'booking_id' => $booking->id,
+                'passenger_id' => $booking->passenger_id,
+                'passenger_name' => $booking->passenger?->name,
+                'latitude' => $booking->pickup_lat,
+                'longitude' => $booking->pickup_lng,
+                'location_note' => $booking->pickup_address,
+                'status' => ['OPEN', 'ACKNOWLEDGED', 'CLOSED', 'CLOSED'][$index],
+                'acknowledged_by_admin_id' => $index > 0 ? $admin->id : null,
+                'acknowledged_at' => $index > 0 ? now()->subHours(3 + $index) : null,
+                'closed_by_admin_id' => $index > 1 ? $admin->id : null,
+                'closed_at' => $index > 1 ? now()->subHours(1 + $index) : null,
+            ]);
+        }
+
+        // --- Audit Logs ---
+        foreach (range(1, 12) as $i) {
+            AuditLog::create([
+                'actor_user_id' => $admin->id,
+                'actor_type' => 'USER',
+                'actor_name' => $admin->name,
+                'object_type' => collect(['BOOKING', 'DISPUTE', 'SOS_ALERT', 'DRIVER', 'TRICYCLE'])->random(),
+                'object_id' => rand(1, 20),
+                'action' => collect(['CREATE', 'UPDATE', 'DISPUTE_STATUS_UPDATED', 'SOS_STATUS_UPDATED', 'OVERRIDE'])->random(),
+                'reason' => 'Seeded audit entry',
+                'ip_address' => '127.0.0.1',
+                'user_agent' => 'Seeder',
+                'created_at' => now()->subHours($i * 2),
+                'updated_at' => now()->subHours($i * 2),
             ]);
         }
 

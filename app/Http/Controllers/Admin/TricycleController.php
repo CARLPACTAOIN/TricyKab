@@ -27,6 +27,10 @@ class TricycleController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('registration_status') && in_array($request->registration_status, ['ACTIVE', 'EXPIRED', 'PENDING', 'SUSPENDED'])) {
+            $query->where('registration_status', $request->registration_status);
+        }
+
         $tricycles = $query->latest()->paginate(10)->withQueryString();
         $todas = \App\Models\Toda::all();
         return view('admin.tricycles.index', compact('tricycles', 'todas'));
@@ -52,6 +56,8 @@ class TricycleController extends Controller
             'toda_id' => 'required|exists:todas,id',
             'make_model' => 'nullable|string|max:255',
             'status' => 'required|in:active,inactive,maintenance',
+            'registration_status' => 'required|in:ACTIVE,EXPIRED,PENDING,SUSPENDED',
+            'capacity' => 'required|integer|min:1|max:8',
         ]);
 
         \App\Models\Tricycle::create($validated);
@@ -88,6 +94,8 @@ class TricycleController extends Controller
             'toda_id' => 'required|exists:todas,id',
             'make_model' => 'nullable|string|max:255',
             'status' => 'required|in:active,inactive,maintenance',
+            'registration_status' => 'required|in:ACTIVE,EXPIRED,PENDING,SUSPENDED',
+            'capacity' => 'required|integer|min:1|max:8',
         ]);
 
         $tricycle = \App\Models\Tricycle::findOrFail($id);

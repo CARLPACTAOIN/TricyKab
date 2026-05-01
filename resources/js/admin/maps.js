@@ -1,6 +1,39 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
+/* ── Fix 1: Leaflet default icon paths broken by Vite/bundlers ───────── */
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconUrl: markerIcon,
+    iconRetinaUrl: markerIcon2x,
+    shadowUrl: markerShadow,
+});
+
+/* ── Fix 2: Tailwind Preflight vs Leaflet tile rendering ─────────────
+ * Tailwind's Preflight resets `img { max-width: 100% }` which collapses
+ * OSM tiles to 0 × 0.  Injecting overrides here guarantees they load
+ * alongside the Leaflet CSS regardless of build-tool CSS ordering.
+ */
+const styleId = '__leaflet-tw-fix';
+if (!document.getElementById(styleId)) {
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+        .leaflet-container { font-family: inherit; z-index: 0; }
+        .leaflet-container img,
+        .leaflet-container svg { max-width: none !important; max-height: none !important; }
+        .leaflet-container .leaflet-control-container { z-index: 1000; }
+        [data-map-root] { min-height: 16rem; }
+        [data-map-canvas].leaflet-container { height: 100%; min-height: 16rem; width: 100%; }
+        .leaflet-tile-pane img { max-width: none !important; max-height: none !important; }
+    `;
+    document.head.appendChild(style);
+}
+
 const DEFAULT_CENTER = [7.114, 124.836];
 
 /** leaflet.heat expects global `L` (UMD); ensure it exists before loading the plugin. */
@@ -14,8 +47,12 @@ async function ensureHeatPlugin() {
         window.L = L;
     }
     if (!heatPluginLoaded) {
-        await import('leaflet.heat');
-        heatPluginLoaded = true;
+        try {
+            await import('leaflet.heat');
+            heatPluginLoaded = true;
+        } catch (e) {
+            console.warn('[admin maps] leaflet.heat chunk failed to load; using circle fallback.', e);
+        }
     }
 }
 
@@ -54,6 +91,35 @@ function clearMapMessage(root) {
 
 function mapCanvas(root) {
     return root.querySelector('[data-map-canvas]') ?? root;
+}
+
+/** Leaflet often measures 0×0 on first paint with flex/grid parents; re-measure after layout. */
+function scheduleMapResize(map) {
+    const run = () => {
+        try {
+            map.invalidateSize();
+        } catch {
+            /* ignore */
+        }
+    };
+    requestAnimationFrame(() => {
+        run();
+        requestAnimationFrame(run);
+    });
+    setTimeout(run, 50);
+    setTimeout(run, 250);
+    if (typeof window !== 'undefined') {
+        window.addEventListener('load', run, { once: true });
+    }
+}
+
+function hasLatLng(p) {
+    if (p == null || typeof p !== 'object') {
+        return false;
+    }
+    const lat = Number(p.lat);
+    const lng = Number(p.lng);
+    return Number.isFinite(lat) && Number.isFinite(lng);
 }
 
 /** @param {L.Map} map */
@@ -95,7 +161,7 @@ function createLeafletMap(root, payload) {
     baseTileLayer().addTo(map);
 
     map.whenReady(() => {
-        map.invalidateSize();
+        scheduleMapResize(map);
     });
 
     return map;
@@ -152,6 +218,7 @@ async function initDashboardHeatmap(root) {
     }
 
     fitBoundsFromLatLngs(map, points);
+    scheduleMapResize(map);
 }
 
 async function fetchOsrmRoute(coords) {
@@ -173,7 +240,7 @@ async function initBookingRouteMap(root) {
     const pickup = payload.pickup;
     const destination = payload.destination;
 
-    if (!pickup?.lat || !pickup?.lng || !destination?.lat || !destination?.lng) {
+    if (!hasLatLng(pickup) || !hasLatLng(destination)) {
         setMapMessage(root, 'This booking does not have enough coordinates to render a route.', 'warning');
         return;
     }
@@ -250,6 +317,8 @@ async function initBookingRouteMap(root) {
             'warning',
         );
     }
+
+    scheduleMapResize(map);
 }
 
 function initStandbyPointMap(root) {
@@ -287,6 +356,7 @@ function initStandbyPointMap(root) {
     });
 
     fitBoundsFromLatLngs(map, points);
+    scheduleMapResize(map);
 }
 
 async function initMapRoot(root) {

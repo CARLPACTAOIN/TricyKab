@@ -28,10 +28,11 @@
         </div>
         <div
             class="relative h-72 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800"
+            data-map-root
             data-map-context="standby-points"
             data-map-payload='@json($mapPayload)'
         >
-            <div data-map-canvas class="absolute inset-0"></div>
+            <div data-map-canvas class="h-full w-full min-h-[18rem]"></div>
         </div>
     </div>
 

@@ -11,11 +11,27 @@
     }
 }
 
-/* Leaflet (admin maps): fill the map panel and match app typography */
+/*
+ | Leaflet + Tailwind
+ | Preflight sets img { max-width: 100% }, which breaks OSM tile layout (tiles collapse / blank map).
+ */
 .leaflet-container {
     font-family: inherit;
+    z-index: 0;
+}
+.leaflet-container img,
+.leaflet-container svg {
+    max-width: none !important;
+    max-height: none !important;
+}
+.leaflet-container .leaflet-control-container {
+    z-index: 1000;
+}
+[data-map-root] {
+    min-height: 16rem;
 }
 [data-map-canvas].leaflet-container {
     height: 100%;
+    min-height: 16rem;
     width: 100%;
 }
