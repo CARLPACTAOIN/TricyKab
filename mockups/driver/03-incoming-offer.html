@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TricyKab — Incoming Offer</title>
+    <title>TricyKab — Incoming Offers</title>
     <link rel="stylesheet" href="../shared/styles.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <script src="../shared/data.js"></script>
@@ -13,80 +13,429 @@
     <div class="status-bar" style="background:#1e1b4b;"><span class="time" style="color:#fff;">6:12</span><div class="icons"><span class="material-icons-outlined" style="font-size:14px; color:#fff;">signal_cellular_alt</span><span class="material-icons-outlined" style="font-size:14px; color:#fff;">wifi</span><span class="material-icons-outlined" style="font-size:14px; color:#fff;">battery_full</span></div></div>
 
     <!-- Offer Header -->
-    <div style="background:linear-gradient(135deg, #1e1b4b, #312e81); padding:20px; text-align:center;">
-        <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:0.06em;">New Ride Request</p>
-        <p style="font-size:22px; font-weight:800; color:#fff; margin-top:4px;">Booking Offer</p>
+    <div style="background:linear-gradient(135deg, #1e1b4b, #312e81); padding:20px 24px; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+            <p style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:0.06em;">New Ride Requests</p>
+            <p style="font-size:22px; font-weight:800; color:#fff; margin-top:4px;">Booking Offers</p>
+        </div>
+        <span class="offer-count-badge" id="offerCountBadge">
+            <span class="material-icons-outlined" style="font-size:14px;">local_offer</span>
+            <span id="offerCountText">3 offers</span>
+        </span>
     </div>
 
     <div class="screen-content" style="padding-top:16px;">
-        <!-- Countdown Timer -->
-        <div style="text-align:center; margin-bottom:20px;">
-            <div class="countdown" style="margin:0 auto;" id="countdown">12</div>
-            <p style="font-size:11px; color:var(--text-muted); margin-top:8px;">seconds to respond</p>
+
+        <!-- ── Horizontal Offer Carousel ── -->
+        <div class="offer-carousel">
+            <div class="offer-track" id="offerTrack">
+
+                <!-- CARD 1: Maria Clara -->
+                <div class="offer-card" data-offer-id="1" id="offerCard1">
+                    <!-- Circular Timer -->
+                    <div style="text-align:center; margin-bottom:14px;">
+                        <div class="circular-timer" id="timer1">
+                            <svg viewBox="0 0 68 68">
+                                <circle class="timer-bg" cx="34" cy="34" r="30"></circle>
+                                <circle class="timer-ring safe" cx="34" cy="34" r="30"
+                                    stroke-dasharray="188.5"
+                                    stroke-dashoffset="0"
+                                    id="ring1"></circle>
+                            </svg>
+                            <div class="timer-text" id="timerText1">20</div>
+                        </div>
+                        <p style="font-size:10px; color:var(--text-muted); margin-top:4px;">seconds to respond</p>
+                    </div>
+
+                    <!-- Condensed Info -->
+                    <div class="offer-header">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div class="avatar avatar-success avatar-sm">MC</div>
+                            <span class="passenger-name">Maria Clara</span>
+                        </div>
+                        <div class="pickup-dist">
+                            <span class="material-icons-outlined">near_me</span>
+                            1.2 km
+                        </div>
+                    </div>
+
+                    <div class="offer-info-row">
+                        <span class="material-icons-outlined" style="color:var(--danger);">place</span>
+                        <span>USM Main Gate</span>
+                    </div>
+
+                    <div class="offer-fare">₱35.00</div>
+
+                    <!-- See Details Toggle -->
+                    <button class="details-toggle" onclick="toggleDetails(this)">
+                        See Details
+                        <span class="material-icons-outlined">expand_more</span>
+                    </button>
+
+                    <div class="details-panel">
+                        <div class="divider" style="margin-top:0;"></div>
+                        <div class="grid-2" style="margin-bottom:12px;">
+                            <div>
+                                <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Ride Type</p>
+                                <span class="badge badge-shared mt-4">SHARED</span>
+                            </div>
+                            <div style="text-align:right;">
+                                <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Est. Duration</p>
+                                <p style="font-size:14px; font-weight:700; margin-top:4px;">~13 min</p>
+                            </div>
+                        </div>
+                        <div class="grid-2" style="margin-bottom:12px;">
+                            <div>
+                                <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Trip Distance</p>
+                                <p style="font-size:14px; font-weight:700; margin-top:2px;">3.2 km</p>
+                            </div>
+                            <div style="text-align:right;">
+                                <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Pickup</p>
+                                <p style="font-size:12px; font-weight:600; margin-top:2px;">Kabacan Market</p>
+                            </div>
+                        </div>
+                        <div class="map-placeholder" style="height:110px; border-radius:var(--radius-xs);">
+                            <span class="material-icons-outlined" style="font-size:24px;">map</span>
+                            <span>Route preview</span>
+                        </div>
+                    </div>
+
+                    <!-- CTA Buttons -->
+                    <div style="display:flex; gap:12px; margin-top:14px;">
+                        <button class="btn btn-danger" style="flex:1;" onclick="declineOffer(1)">
+                            <span class="material-icons-outlined" style="font-size:20px;">close</span>
+                            Decline
+                        </button>
+                        <a href="04-assigned-pickup.html" class="btn btn-success" style="flex:1;">
+                            <span class="material-icons-outlined" style="font-size:20px;">check</span>
+                            Accept
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CARD 2: Jose Rizal -->
+                <div class="offer-card" data-offer-id="2" id="offerCard2">
+                    <div style="text-align:center; margin-bottom:14px;">
+                        <div class="circular-timer" id="timer2">
+                            <svg viewBox="0 0 68 68">
+                                <circle class="timer-bg" cx="34" cy="34" r="30"></circle>
+                                <circle class="timer-ring safe" cx="34" cy="34" r="30"
+                                    stroke-dasharray="188.5"
+                                    stroke-dashoffset="0"
+                                    id="ring2"></circle>
+                            </svg>
+                            <div class="timer-text" id="timerText2">20</div>
+                        </div>
+                        <p style="font-size:10px; color:var(--text-muted); margin-top:4px;">seconds to respond</p>
+                    </div>
+
+                    <div class="offer-header">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div class="avatar avatar-primary avatar-sm">JR</div>
+                            <span class="passenger-name">Jose Rizal</span>
+                        </div>
+                        <div class="pickup-dist">
+                            <span class="material-icons-outlined">near_me</span>
+                            0.8 km
+                        </div>
+                    </div>
+
+                    <div class="offer-info-row">
+                        <span class="material-icons-outlined" style="color:var(--danger);">place</span>
+                        <span>Nongnongan Brgy. Hall</span>
+                    </div>
+
+                    <div class="offer-fare">₱45.00</div>
+
+                    <button class="details-toggle" onclick="toggleDetails(this)">
+                        See Details
+                        <span class="material-icons-outlined">expand_more</span>
+                    </button>
+
+                    <div class="details-panel">
+                        <div class="divider" style="margin-top:0;"></div>
+                        <div class="grid-2" style="margin-bottom:12px;">
+                            <div>
+                                <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Ride Type</p>
+                                <span class="badge badge-shared mt-4">SHARED</span>
+                            </div>
+                            <div style="text-align:right;">
+                                <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Est. Duration</p>
+                                <p style="font-size:14px; font-weight:700; margin-top:4px;">~18 min</p>
+                            </div>
+                        </div>
+                        <div class="grid-2" style="margin-bottom:12px;">
+                            <div>
+                                <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Trip Distance</p>
+                                <p style="font-size:14px; font-weight:700; margin-top:2px;">4.7 km</p>
+                            </div>
+                            <div style="text-align:right;">
+                                <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Pickup</p>
+                                <p style="font-size:12px; font-weight:600; margin-top:2px;">Poblacion Terminal</p>
+                            </div>
+                        </div>
+                        <div class="map-placeholder" style="height:110px; border-radius:var(--radius-xs);">
+                            <span class="material-icons-outlined" style="font-size:24px;">map</span>
+                            <span>Route preview</span>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:12px; margin-top:14px;">
+                        <button class="btn btn-danger" style="flex:1;" onclick="declineOffer(2)">
+                            <span class="material-icons-outlined" style="font-size:20px;">close</span>
+                            Decline
+                        </button>
+                        <a href="04-assigned-pickup.html" class="btn btn-success" style="flex:1;">
+                            <span class="material-icons-outlined" style="font-size:20px;">check</span>
+                            Accept
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CARD 3: Andres Bonifacio -->
+                <div class="offer-card" data-offer-id="3" id="offerCard3">
+                    <div style="text-align:center; margin-bottom:14px;">
+                        <div class="circular-timer" id="timer3">
+                            <svg viewBox="0 0 68 68">
+                                <circle class="timer-bg" cx="34" cy="34" r="30"></circle>
+                                <circle class="timer-ring safe" cx="34" cy="34" r="30"
+                                    stroke-dasharray="188.5"
+                                    stroke-dashoffset="0"
+                                    id="ring3"></circle>
+                            </svg>
+                            <div class="timer-text" id="timerText3">20</div>
+                        </div>
+                        <p style="font-size:10px; color:var(--text-muted); margin-top:4px;">seconds to respond</p>
+                    </div>
+
+                    <div class="offer-header">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div class="avatar avatar-sm" style="background:#fce7f3; color:#9d174d;">AB</div>
+                            <span class="passenger-name">Andres Bonifacio</span>
+                        </div>
+                        <div class="pickup-dist">
+                            <span class="material-icons-outlined">near_me</span>
+                            2.1 km
+                        </div>
+                    </div>
+
+                    <div class="offer-info-row">
+                        <span class="material-icons-outlined" style="color:var(--danger);">place</span>
+                        <span>Kabacan Bus Terminal</span>
+                    </div>
+
+                    <div class="offer-fare">₱95.00</div>
+
+                    <button class="details-toggle" onclick="toggleDetails(this)">
+                        See Details
+                        <span class="material-icons-outlined">expand_more</span>
+                    </button>
+
+                    <div class="details-panel">
+                        <div class="divider" style="margin-top:0;"></div>
+                        <div class="grid-2" style="margin-bottom:12px;">
+                            <div>
+                                <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Ride Type</p>
+                                <span class="badge badge-special mt-4">SPECIAL</span>
+                            </div>
+                            <div style="text-align:right;">
+                                <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Est. Duration</p>
+                                <p style="font-size:14px; font-weight:700; margin-top:4px;">~22 min</p>
+                            </div>
+                        </div>
+                        <div class="grid-2" style="margin-bottom:12px;">
+                            <div>
+                                <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Trip Distance</p>
+                                <p style="font-size:14px; font-weight:700; margin-top:2px;">5.8 km</p>
+                            </div>
+                            <div style="text-align:right;">
+                                <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Pickup</p>
+                                <p style="font-size:12px; font-weight:600; margin-top:2px;">Osias Elementary</p>
+                            </div>
+                        </div>
+                        <div class="map-placeholder" style="height:110px; border-radius:var(--radius-xs);">
+                            <span class="material-icons-outlined" style="font-size:24px;">map</span>
+                            <span>Route preview</span>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:12px; margin-top:14px;">
+                        <button class="btn btn-danger" style="flex:1;" onclick="declineOffer(3)">
+                            <span class="material-icons-outlined" style="font-size:20px;">close</span>
+                            Decline
+                        </button>
+                        <a href="04-assigned-pickup.html" class="btn btn-success" style="flex:1;">
+                            <span class="material-icons-outlined" style="font-size:20px;">check</span>
+                            Accept
+                        </a>
+                    </div>
+                </div>
+
+            </div>
         </div>
 
-        <!-- Offer Card -->
-        <div class="card">
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-                <span class="material-icons-outlined" style="color:var(--success); font-size:18px;">my_location</span>
-                <span style="font-size:13px; font-weight:600;">Kabacan Public Market</span>
-            </div>
-            <div style="border-left:2px dashed var(--border); height:12px; margin-left:9px;"></div>
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-                <span class="material-icons-outlined" style="color:var(--danger); font-size:18px;">place</span>
-                <span style="font-size:13px; font-weight:600;">USM Main Gate</span>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="grid-2">
-                <div>
-                    <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Ride Type</p>
-                    <span class="badge badge-shared mt-4">SHARED</span>
-                </div>
-                <div style="text-align:right;">
-                    <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Est. Fare</p>
-                    <p style="font-size:22px; font-weight:800; color:var(--primary); margin-top:4px;">₱35.00</p>
-                </div>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="grid-2">
-                <div>
-                    <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Distance</p>
-                    <p style="font-size:14px; font-weight:700; margin-top:2px;">3.2 km</p>
-                </div>
-                <div style="text-align:right;">
-                    <p style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Est. Duration</p>
-                    <p style="font-size:14px; font-weight:700; margin-top:2px;">~13 min</p>
-                </div>
-            </div>
+        <!-- Dot Indicators -->
+        <div class="carousel-dots" id="carouselDots">
+            <div class="carousel-dot active" data-index="0" onclick="scrollToCard(0)"></div>
+            <div class="carousel-dot" data-index="1" onclick="scrollToCard(1)"></div>
+            <div class="carousel-dot" data-index="2" onclick="scrollToCard(2)"></div>
         </div>
 
-        <!-- Map Preview -->
-        <div class="map-placeholder" style="height:140px; margin-bottom:16px;">
-            <span class="material-icons-outlined" style="font-size:28px;">map</span>
-            <span>Pickup: 1.2 km from you</span>
-        </div>
-
-        <!-- CTA Buttons -->
-        <div style="display:flex; gap:12px;">
-            <a href="02-home.html" class="btn btn-danger" style="flex:1;">
-                <span class="material-icons-outlined" style="font-size:20px;">close</span>
-                Decline
-            </a>
-            <a href="04-assigned-pickup.html" class="btn btn-success" style="flex:1;">
-                <span class="material-icons-outlined" style="font-size:20px;">check</span>
-                Accept
-            </a>
-        </div>
     </div>
 </div>
+
 <script>
-let time = 12;
-const el = document.getElementById('countdown');
-setInterval(() => { if(time > 0) { time--; el.textContent = time; } }, 1000);
+/* ── Carousel State ── */
+const TIMER_DURATION = 20;
+const CIRCUMFERENCE = 2 * Math.PI * 30; // r=30 → ~188.5
+const timers = {};
+let activeCards = [1, 2, 3];
+
+/* ── Initialize timers ── */
+function initTimers() {
+    activeCards.forEach(id => {
+        timers[id] = { remaining: TIMER_DURATION, interval: null };
+        startTimer(id);
+    });
+}
+
+function startTimer(id) {
+    const ring = document.getElementById('ring' + id);
+    const text = document.getElementById('timerText' + id);
+    if (!ring || !text) return;
+
+    timers[id].interval = setInterval(() => {
+        timers[id].remaining--;
+        const t = timers[id].remaining;
+        text.textContent = t;
+
+        // Update ring
+        const offset = CIRCUMFERENCE * (1 - t / TIMER_DURATION);
+        ring.style.strokeDashoffset = offset;
+
+        // Color transitions
+        ring.classList.remove('safe', 'warning', 'danger');
+        if (t > 10) ring.classList.add('safe');
+        else if (t > 5) ring.classList.add('warning');
+        else ring.classList.add('danger');
+
+        // Timer text color
+        if (t <= 5) text.style.color = 'var(--danger)';
+        else if (t <= 10) text.style.color = 'var(--warning)';
+        else text.style.color = 'var(--text-primary)';
+
+        if (t <= 0) {
+            clearInterval(timers[id].interval);
+            dismissCard(id);
+        }
+    }, 1000);
+}
+
+/* ── Dismiss card (timer expire or decline) ── */
+function dismissCard(id) {
+    if (timers[id] && timers[id].interval) clearInterval(timers[id].interval);
+
+    const card = document.getElementById('offerCard' + id);
+    if (!card) return;
+
+    card.classList.add('dismissing');
+
+    // Remove from active list
+    activeCards = activeCards.filter(c => c !== id);
+    updateOfferCount();
+
+    card.addEventListener('animationend', () => {
+        card.remove();
+        updateDots();
+
+        if (activeCards.length === 0) {
+            // All offers gone — back to home
+            setTimeout(() => { window.location.href = '02-home.html'; }, 400);
+        } else {
+            // Scroll to next card
+            scrollToCard(0);
+        }
+    }, { once: true });
+}
+
+function declineOffer(id) {
+    dismissCard(id);
+}
+
+/* ── Toggle details panel ── */
+function toggleDetails(btn) {
+    const panel = btn.nextElementSibling;
+    btn.classList.toggle('open');
+    panel.classList.toggle('open');
+    btn.textContent = '';
+    if (panel.classList.contains('open')) {
+        btn.innerHTML = 'Hide Details <span class="material-icons-outlined">expand_less</span>';
+    } else {
+        btn.innerHTML = 'See Details <span class="material-icons-outlined">expand_more</span>';
+    }
+    btn.classList.toggle('open', panel.classList.contains('open'));
+}
+
+/* ── Carousel scroll tracking ── */
+const track = document.getElementById('offerTrack');
+
+function scrollToCard(index) {
+    const cards = track.querySelectorAll('.offer-card:not(.dismissing)');
+    if (cards[index]) {
+        cards[index].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+    updateDotsActive(index);
+}
+
+track.addEventListener('scroll', () => {
+    const cards = track.querySelectorAll('.offer-card:not(.dismissing)');
+    const trackRect = track.getBoundingClientRect();
+    const center = trackRect.left + trackRect.width / 2;
+    let closest = 0;
+    let minDist = Infinity;
+
+    cards.forEach((card, i) => {
+        const cardRect = card.getBoundingClientRect();
+        const cardCenter = cardRect.left + cardRect.width / 2;
+        const dist = Math.abs(center - cardCenter);
+        if (dist < minDist) { minDist = dist; closest = i; }
+    });
+
+    updateDotsActive(closest);
+});
+
+function updateDots() {
+    const dotsContainer = document.getElementById('carouselDots');
+    const remaining = track.querySelectorAll('.offer-card:not(.dismissing)');
+    dotsContainer.innerHTML = '';
+    remaining.forEach((_, i) => {
+        const dot = document.createElement('div');
+        dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+        dot.dataset.index = i;
+        dot.onclick = () => scrollToCard(i);
+        dotsContainer.appendChild(dot);
+    });
+}
+
+function updateDotsActive(activeIndex) {
+    const dots = document.querySelectorAll('.carousel-dot');
+    dots.forEach((d, i) => {
+        d.classList.toggle('active', i === activeIndex);
+    });
+}
+
+function updateOfferCount() {
+    const countText = document.getElementById('offerCountText');
+    const badge = document.getElementById('offerCountBadge');
+    if (activeCards.length === 0) {
+        badge.style.display = 'none';
+    } else {
+        countText.textContent = activeCards.length + (activeCards.length === 1 ? ' offer' : ' offers');
+    }
+}
+
+/* ── Start ── */
+document.addEventListener('DOMContentLoaded', initTimers);
 </script>
 </body>
 </html>

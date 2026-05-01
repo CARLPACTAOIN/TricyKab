@@ -684,3 +684,451 @@ body {
     padding: 8px 10px;
   }
 }
+
+/* ==========================================
+   MULTI-OFFER CAROUSEL (Part 1)
+   ========================================== */
+
+/* Carousel container */
+.offer-carousel {
+  position: relative;
+  margin: 0 -24px;
+  padding: 0 24px;
+}
+
+.offer-track {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.offer-track::-webkit-scrollbar { display: none; }
+
+.offer-card {
+  flex: 0 0 calc(100% - 40px);
+  scroll-snap-align: center;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 20px;
+  position: relative;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  will-change: transform, opacity;
+}
+.offer-card:last-child {
+  margin-right: 0;
+}
+
+/* Card dismiss animation */
+@keyframes card-slide-up {
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-60px); opacity: 0; }
+}
+.offer-card.dismissing {
+  animation: card-slide-up 0.35s ease-out forwards;
+  pointer-events: none;
+}
+
+/* Dot indicators */
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.carousel-dot.active {
+  width: 24px;
+  border-radius: 100px;
+  background: var(--primary);
+}
+
+/* ── SVG Circular Countdown Timer ── */
+.circular-timer {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto;
+}
+.circular-timer svg {
+  transform: rotate(-90deg);
+  width: 68px;
+  height: 68px;
+}
+.circular-timer .timer-bg {
+  fill: none;
+  stroke: var(--border-light);
+  stroke-width: 4;
+}
+.circular-timer .timer-ring {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear, stroke 0.5s ease;
+}
+.circular-timer .timer-ring.safe     { stroke: var(--success); }
+.circular-timer .timer-ring.warning  { stroke: var(--warning); }
+.circular-timer .timer-ring.danger   { stroke: var(--danger); }
+
+.circular-timer .timer-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+/* ── Expandable Details Panel ── */
+.details-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  font-family: inherit;
+  transition: color 0.2s;
+}
+.details-toggle:hover { color: var(--primary-dark); }
+.details-toggle .material-icons-outlined {
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+.details-toggle.open .material-icons-outlined {
+  transform: rotate(180deg);
+}
+
+.details-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, padding 0.35s ease;
+  padding: 0;
+}
+.details-panel.open {
+  max-height: 400px;
+  padding-top: 12px;
+}
+
+/* Offer card condensed info */
+.offer-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.offer-info-row .material-icons-outlined {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.offer-info-row span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.offer-fare {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--primary);
+  text-align: center;
+  margin: 8px 0 4px;
+}
+
+/* Offer card header with name + distance */
+.offer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.offer-header .passenger-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.offer-header .pickup-dist {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.offer-header .pickup-dist .material-icons-outlined {
+  font-size: 14px;
+  color: var(--primary);
+}
+
+/* Offer count badge in header */
+.offer-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ==========================================
+   MULTI-PASSENGER TRIP MANAGEMENT (Part 2)
+   ========================================== */
+
+/* Context-aware header */
+.context-header {
+  padding: 14px 24px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.context-header .next-task-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+.context-header .next-task-value {
+  font-size: 16px;
+  font-weight: 800;
+  margin-top: 2px;
+}
+.context-header--pickup {
+  background: var(--primary);
+  color: #fff;
+}
+.context-header--trip {
+  background: var(--success);
+  color: #fff;
+}
+
+/* Trip stack */
+.trip-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.trip-stack-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  padding-left: 2px;
+}
+
+.trip-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  border-left: 4px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s;
+}
+
+.trip-card--waiting {
+  border-left-color: var(--warning);
+  background: linear-gradient(90deg, rgba(245,166,35,0.04) 0%, var(--bg-card) 40%);
+}
+.trip-card--onboard {
+  border-left-color: var(--success);
+  background: linear-gradient(90deg, rgba(9,173,149,0.04) 0%, var(--bg-card) 40%);
+}
+.trip-card--completed {
+  border-left-color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.trip-card .trip-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.trip-card .trip-card-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.trip-card .trip-card-detail {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.trip-card .trip-card-fare {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* Trip card action buttons */
+.trip-card-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.trip-card-action--call {
+  background: var(--primary-10);
+  color: var(--primary);
+}
+.trip-card-action--call:hover {
+  background: var(--primary-20);
+}
+.trip-card-action--complete {
+  background: var(--success-light);
+  color: var(--success);
+}
+.trip-card-action--complete:hover {
+  background: var(--success);
+  color: #fff;
+}
+
+/* Map waypoint markers */
+.map-marker {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.map-marker-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.map-marker-dot .material-icons-outlined {
+  color: #fff;
+  font-size: 16px;
+}
+.map-marker-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.9);
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.map-marker--pickup .map-marker-dot   { background: var(--success); }
+.map-marker--dropoff .map-marker-dot  { background: var(--danger); }
+.map-marker--driver .map-marker-dot   { background: var(--primary); box-shadow: 0 2px 10px rgba(98,88,202,0.45); }
+
+/* Route line on map */
+.map-route-line {
+  position: absolute;
+  z-index: 1;
+  border-top: 3px dashed var(--primary);
+  opacity: 0.5;
+  transform-origin: left center;
+}
+
+/* Dynamic primary action button */
+.btn-dynamic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 16px 24px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  color: #fff;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+.btn-dynamic--pickup {
+  background: var(--primary);
+  box-shadow: 0 4px 14px rgba(98,88,202,0.3);
+}
+.btn-dynamic--pickup:hover { background: var(--primary-dark); }
+.btn-dynamic--arrive {
+  background: var(--success);
+  box-shadow: 0 4px 14px rgba(9,173,149,0.3);
+}
+.btn-dynamic--arrive:hover { background: #07a088; }
+.btn-dynamic--complete {
+  background: #3b82f6;
+  box-shadow: 0 4px 14px rgba(59,130,246,0.3);
+}
+.btn-dynamic--complete:hover { background: #2563eb; }
+
+/* Passenger count indicator */
+.passenger-count-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-xs);
+  margin-bottom: 12px;
+}
+.passenger-count-bar .count-text {
+  font-size: 13px;
+  font-weight: 700;
+  flex: 1;
+}
+.passenger-count-bar .count-value {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+@media (max-width: 900px) {
+  .offer-carousel {
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+  .offer-card {
+    flex: 0 0 calc(100% - 32px);
+  }
+  .context-header {
+    padding: 12px 16px 14px;
+  }
+}

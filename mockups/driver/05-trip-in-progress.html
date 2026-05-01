@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TricyKab — Driver Trip In Progress</title>
+    <title>TricyKab — Trip In Progress</title>
     <link rel="stylesheet" href="../shared/styles.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <script src="../shared/data.js"></script>
@@ -12,45 +12,99 @@
 <div class="phone-frame">
     <div class="status-bar" style="background:var(--success);"><span class="time" style="color:#fff;">6:18</span><div class="icons"><span class="material-icons-outlined" style="font-size:14px; color:#fff;">signal_cellular_alt</span><span class="material-icons-outlined" style="font-size:14px; color:#fff;">wifi</span><span class="material-icons-outlined" style="font-size:14px; color:#fff;">battery_full</span></div></div>
 
-    <div style="background:var(--success); padding:12px 20px 16px; display:flex; align-items:center; justify-content:space-between;">
+    <!-- Context-Aware Header -->
+    <div class="context-header context-header--trip">
         <div>
-            <p style="font-size:11px; color:rgba(255,255,255,0.7); font-weight:600; text-transform:uppercase;">Trip In Progress</p>
-            <p style="font-size:16px; font-weight:800; color:#fff;">Heading to USM Main Gate</p>
+            <p class="next-task-label">Next Task</p>
+            <p class="next-task-value" id="headerTask">Drop off Maria Clara</p>
         </div>
-        <span class="badge" style="background:rgba(255,255,255,0.2); color:#fff;">LIVE</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span class="badge" style="background:rgba(255,255,255,0.2); color:#fff;">LIVE</span>
+            <span class="badge" style="background:rgba(255,255,255,0.15); color:#fff;">
+                <span class="material-icons-outlined" style="font-size:12px;">group</span>
+                2 ONBOARD
+            </span>
+        </div>
     </div>
 
     <div class="screen-content" style="padding-top:16px;">
-        <!-- Map -->
-        <div class="map-placeholder" style="height:220px; margin-bottom:16px;">
-            <span class="material-icons-outlined">navigation</span>
-            <span>Navigating to destination</span>
-            <div style="position:absolute; top:40%; left:40%; z-index:2;">
-                <div style="width:36px; height:36px; background:var(--success); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(9,173,149,0.4);">
-                    <span class="material-icons-outlined" style="color:#fff; font-size:18px;">electric_rickshaw</span>
+
+        <!-- Multi-Waypoint Map -->
+        <div class="map-placeholder" style="height:200px; margin-bottom:16px;">
+            <span class="material-icons-outlined" style="font-size:28px;">navigation</span>
+            <span>Optimized route to drop-offs</span>
+
+            <!-- Driver marker (moving) -->
+            <div class="map-marker map-marker--driver" style="top:35%; left:35%;">
+                <div class="map-marker-dot">
+                    <span class="material-icons-outlined">electric_rickshaw</span>
                 </div>
             </div>
-            <div style="position:absolute; bottom:20%; right:20%; z-index:2;">
-                <span class="material-icons-outlined" style="color:var(--danger); font-size:28px;">place</span>
+
+            <!-- Dropoff 1: Maria Clara — USM -->
+            <div class="map-marker map-marker--dropoff" style="bottom:22%; right:18%;">
+                <div class="map-marker-dot">
+                    <span class="material-icons-outlined">flag</span>
+                </div>
+                <span class="map-marker-label">Maria — USM</span>
             </div>
+
+            <!-- Dropoff 2: Jose Rizal — Nongnongan -->
+            <div class="map-marker map-marker--dropoff" style="bottom:15%; left:20%;">
+                <div class="map-marker-dot">
+                    <span class="material-icons-outlined">flag</span>
+                </div>
+                <span class="map-marker-label">Jose — Nongnongan</span>
+            </div>
+
+            <!-- Route lines -->
+            <div class="map-route-line" style="top:45%; left:40%; width:35%; transform:rotate(15deg);"></div>
+            <div class="map-route-line" style="top:55%; left:25%; width:30%; transform:rotate(-10deg);"></div>
         </div>
 
         <!-- Passengers on Board -->
         <div class="card" style="padding:16px;">
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-                <p style="font-size:13px; font-weight:700;">Passengers on Board</p>
-                <span style="font-size:13px; font-weight:800; color:var(--primary);">1 / 4</span>
+                <p style="font-size:13px; font-weight:700;">Passengers Onboard</p>
+                <span style="font-size:13px; font-weight:800; color:var(--primary);">2 / 4</span>
             </div>
-            <div class="capacity-bar" style="margin-bottom:12px;">
-                <div class="fill" style="width:25%; background:var(--success);"></div>
+            <div class="capacity-bar" style="margin-bottom:16px;">
+                <div class="fill" style="width:50%; background:var(--success);"></div>
             </div>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div class="avatar avatar-success avatar-sm">MC</div>
-                <div style="flex:1;">
-                    <p style="font-size:13px; font-weight:600;">Maria Clara</p>
-                    <p style="font-size:11px; color:var(--text-muted);">Kabacan Market → USM</p>
+
+            <!-- Onboard Trip Stack -->
+            <div class="trip-stack" style="margin-bottom:0;">
+                <!-- Maria Clara — onboard, nearest drop-off -->
+                <div class="trip-card trip-card--onboard" id="paxCard1">
+                    <div class="avatar avatar-success avatar-sm">MC</div>
+                    <div class="trip-card-info">
+                        <p class="trip-card-name">Maria Clara</p>
+                        <p class="trip-card-detail">Kabacan Market → USM Main Gate</p>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                        <span class="trip-card-fare">₱35</span>
+                        <button class="trip-card-action trip-card-action--complete" onclick="completePax(1)">
+                            <span class="material-icons-outlined" style="font-size:12px;">check</span>
+                            Complete
+                        </button>
+                    </div>
                 </div>
-                <span style="font-size:14px; font-weight:700; color:var(--primary);">₱35</span>
+
+                <!-- Jose Rizal — onboard, further drop-off -->
+                <div class="trip-card trip-card--onboard" id="paxCard2">
+                    <div class="avatar avatar-primary avatar-sm">JR</div>
+                    <div class="trip-card-info">
+                        <p class="trip-card-name">Jose Rizal</p>
+                        <p class="trip-card-detail">Poblacion Terminal → Nongnongan Brgy. Hall</p>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                        <span class="trip-card-fare">₱45</span>
+                        <button class="trip-card-action trip-card-action--complete" onclick="completePax(2)">
+                            <span class="material-icons-outlined" style="font-size:12px;">check</span>
+                            Complete
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -58,12 +112,12 @@
         <div class="card" style="padding:0; overflow:hidden;">
             <div class="grid-2" style="gap:0;">
                 <div class="stat-card" style="border-right:1px solid var(--border-light);">
-                    <p class="stat-value" style="font-size:18px;">4:22</p>
+                    <p class="stat-value" style="font-size:18px;" id="elapsed">4:22</p>
                     <p class="stat-label">Elapsed</p>
                 </div>
                 <div class="stat-card">
-                    <p class="stat-value" style="font-size:18px;">1.4 km</p>
-                    <p class="stat-label">Remaining</p>
+                    <p class="stat-value" style="font-size:18px;">2.8 km</p>
+                    <p class="stat-label">Total Remaining</p>
                 </div>
             </div>
         </div>
@@ -74,12 +128,110 @@
                 <span class="material-icons-outlined" style="font-size:18px;">person_add</span>
                 Add Passenger
             </a>
-            <a href="07-end-trip.html" class="btn btn-danger" style="flex:1;">
-                <span class="material-icons-outlined" style="font-size:18px;">stop_circle</span>
-                End Trip
-            </a>
+            <button class="btn-dynamic btn-dynamic--complete" style="flex:1;" id="primaryBtn" onclick="handlePrimaryAction()">
+                <span class="material-icons-outlined" style="font-size:18px;" id="primaryIcon">check_circle</span>
+                <span id="primaryBtnText">Complete Maria's Trip</span>
+            </button>
+        </div>
+
+        <!-- Earnings summary for this trip -->
+        <div class="card card-sm mt-12" style="background:var(--primary-10); display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span class="material-icons-outlined" style="color:var(--primary); font-size:18px;">payments</span>
+                <span style="font-size:12px; font-weight:600; color:var(--primary);">Trip Earnings</span>
+            </div>
+            <span style="font-size:16px; font-weight:800; color:var(--primary);" id="totalEarnings">₱80.00</span>
         </div>
     </div>
 </div>
+
+<script>
+/* ── Elapsed time ticker ── */
+let seconds = 262; // 4:22
+setInterval(() => {
+    seconds++;
+    const m = Math.floor(seconds / 60);
+    const s = (seconds % 60).toString().padStart(2, '0');
+    const el = document.getElementById('elapsed');
+    if (el) el.textContent = m + ':' + s;
+}, 1000);
+
+/* ── Complete individual passenger trip ── */
+let completedPax = new Set();
+
+function completePax(id) {
+    if (completedPax.has(id)) return;
+    completedPax.add(id);
+
+    const card = document.getElementById('paxCard' + id);
+    if (card) {
+        card.classList.remove('trip-card--onboard');
+        card.classList.add('trip-card--completed');
+        // Replace complete button with "Completed" badge
+        const actionBtn = card.querySelector('.trip-card-action--complete');
+        if (actionBtn) {
+            actionBtn.innerHTML = '<span class="material-icons-outlined" style="font-size:12px;">done_all</span> Done';
+            actionBtn.style.pointerEvents = 'none';
+            actionBtn.style.background = 'var(--bg-subtle)';
+            actionBtn.style.color = 'var(--text-muted)';
+        }
+    }
+
+    updatePrimaryButton();
+    updateHeader();
+}
+
+function updatePrimaryButton() {
+    const btn = document.getElementById('primaryBtn');
+    const text = document.getElementById('primaryBtnText');
+    const icon = document.getElementById('primaryIcon');
+
+    if (completedPax.size === 0) {
+        text.textContent = "Complete Maria's Trip";
+        icon.textContent = 'check_circle';
+        btn.className = 'btn-dynamic btn-dynamic--complete';
+        btn.style.flex = '1';
+    } else if (completedPax.size === 1 && !completedPax.has(1)) {
+        text.textContent = "Complete Maria's Trip";
+        icon.textContent = 'check_circle';
+    } else if (completedPax.size === 1 && !completedPax.has(2)) {
+        text.textContent = "Complete Jose's Trip";
+        icon.textContent = 'check_circle';
+    } else if (completedPax.size >= 2) {
+        text.textContent = 'End All Trips';
+        icon.textContent = 'stop_circle';
+        btn.className = 'btn-dynamic btn-dynamic--arrive';
+        btn.style.flex = '1';
+        btn.onclick = () => { window.location.href = '07-end-trip.html'; };
+    }
+}
+
+function updateHeader() {
+    const header = document.getElementById('headerTask');
+    if (completedPax.size === 0) {
+        header.textContent = 'Drop off Maria Clara';
+    } else if (completedPax.size === 1 && !completedPax.has(1)) {
+        header.textContent = 'Drop off Maria Clara';
+    } else if (completedPax.size === 1 && !completedPax.has(2)) {
+        header.textContent = 'Drop off Jose Rizal';
+    } else {
+        header.textContent = 'All passengers dropped off';
+    }
+}
+
+function handlePrimaryAction() {
+    if (completedPax.size >= 2) {
+        window.location.href = '07-end-trip.html';
+        return;
+    }
+
+    // Complete the next un-completed passenger
+    if (!completedPax.has(1)) {
+        completePax(1);
+    } else if (!completedPax.has(2)) {
+        completePax(2);
+    }
+}
+</script>
 </body>
 </html>
