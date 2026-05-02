@@ -2,21 +2,24 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\AuditLog;
 use App\Models\Barangay;
-use App\Models\Toda;
-use App\Models\Tricycle;
-use App\Models\Driver;
-use App\Models\Dispute;
-use App\Models\FareMatrix;
 use App\Models\Booking;
+use App\Models\Dispute;
+use App\Models\Driver;
+use App\Models\FareMatrix;
 use App\Models\Payment;
 use App\Models\SosAlert;
-use App\Models\AuditLog;
 use App\Models\StandbyPoint;
+use App\Models\Toda;
+use App\Models\Tricycle;
+use App\Models\User;
+use App\Support\PhoneNormalizer;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -56,6 +59,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@tricykab.test',
             'password' => bcrypt('password'),
             'role' => 'admin',
+            'status' => 'ACTIVE',
         ]);
 
         // --- TODAs (Kabacan, Cotabato) ---
@@ -102,8 +106,8 @@ class DatabaseSeeder extends Seeder
         foreach ($todaList as $toda) {
             for ($i = 0; $i < 5; $i++) {
                 $tricycles[] = Tricycle::create([
-                    'body_number' => 'KB-' . str_pad($counter, 3, '0', STR_PAD_LEFT),
-                    'plate_number' => 'TC-' . str_pad($counter, 4, '0', STR_PAD_LEFT),
+                    'body_number' => 'KB-'.str_pad($counter, 3, '0', STR_PAD_LEFT),
+                    'plate_number' => 'TC-'.str_pad($counter, 4, '0', STR_PAD_LEFT),
                     'toda_id' => $toda->id,
                     'make_model' => collect(['Honda TMX 125', 'Kawasaki Barako', 'Honda XRM 125', 'Yamaha YTX'])->random(),
                     'status' => $counter <= 18 ? 'active' : 'maintenance',
@@ -116,18 +120,32 @@ class DatabaseSeeder extends Seeder
 
         // --- Drivers ---
         $firstNames = ['Juan', 'Pedro', 'Jose', 'Mario', 'Roberto', 'Eduardo', 'Ricardo', 'Antonio', 'Fernando', 'Carlos',
-                        'Miguel', 'Rafael', 'Manuel', 'Andres', 'Francisco', 'Ernesto', 'Danilo', 'Romeo', 'Ruben', 'Oscar'];
+            'Miguel', 'Rafael', 'Manuel', 'Andres', 'Francisco', 'Ernesto', 'Danilo', 'Romeo', 'Ruben', 'Oscar'];
         $lastNames = ['Dela Cruz', 'Santos', 'Reyes', 'Cruz', 'Bautista', 'Gonzales', 'Lopez', 'Garcia', 'Mendoza', 'Torres',
-                      'Rivera', 'Flores', 'Ramos', 'Villanueva', 'Castro', 'Martinez', 'Morales', 'Aquino', 'Navarro', 'Peña'];
+            'Rivera', 'Flores', 'Ramos', 'Villanueva', 'Castro', 'Martinez', 'Morales', 'Aquino', 'Navarro', 'Peña'];
 
         foreach ($tricycles as $index => $tricycle) {
-            if ($index >= 18) continue; // Only assign drivers to active tricycles
+            if ($index >= 18) {
+                continue;
+            }
+
+            $phoneE164 = sprintf('+6391711%05d', $index);
+
+            $driverUser = User::create([
+                'name' => $firstNames[$index].' '.$lastNames[$index],
+                'email' => 'driver_'.$index.'@tricykab.local',
+                'password' => Hash::make(Str::random(32)),
+                'role' => 'driver',
+                'phone' => $phoneE164,
+                'status' => 'ACTIVE',
+            ]);
 
             Driver::create([
+                'user_id' => $driverUser->id,
                 'first_name' => $firstNames[$index],
                 'last_name' => $lastNames[$index],
-                'license_number' => 'N12-' . str_pad($index + 1, 2, '0', STR_PAD_LEFT) . '-' . str_pad(rand(100000, 999999), 6, '0', STR_PAD_LEFT),
-                'contact_number' => '09' . rand(10, 99) . '-' . rand(100, 999) . '-' . rand(1000, 9999),
+                'license_number' => 'N12-'.str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT).'-'.str_pad((string) rand(100000, 999999), 6, '0', STR_PAD_LEFT),
+                'contact_number' => $phoneE164,
                 'address' => 'Kabacan, Cotabato',
                 'rating' => round(rand(35, 50) / 10, 2),
                 'status' => 'active',
@@ -136,12 +154,23 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // Two unassigned drivers
+        $inactiveDriverPhone = '+639171230001';
+
+        $inactiveDriverUser = User::create([
+            'name' => 'Rolando Delos Reyes',
+            'email' => 'driver_inactive@tricykab.local',
+            'password' => Hash::make(Str::random(32)),
+            'role' => 'driver',
+            'phone' => $inactiveDriverPhone,
+            'status' => 'ACTIVE',
+        ]);
+
         Driver::create([
+            'user_id' => $inactiveDriverUser->id,
             'first_name' => 'Rolando',
             'last_name' => 'Delos Reyes',
             'license_number' => 'N12-21-654321',
-            'contact_number' => '0912-345-6789',
+            'contact_number' => $inactiveDriverPhone,
             'address' => 'Kabacan, Cotabato',
             'rating' => 4.20,
             'status' => 'inactive',
@@ -274,12 +303,14 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Leo Fernandez', 'email' => 'leo@example.com', 'phone' => '0917-555-1208'],
             ['name' => 'Nica Flores', 'email' => 'nica@example.com', 'phone' => '0917-555-1209'],
         ])->mapWithKeys(function ($passenger) {
+            $phone = PhoneNormalizer::normalize($passenger['phone']);
             $user = User::create([
                 'name' => $passenger['name'],
                 'email' => $passenger['email'],
                 'password' => bcrypt('password'),
                 'role' => 'passenger',
-                'phone' => $passenger['phone'],
+                'phone' => $phone,
+                'status' => 'ACTIVE',
             ]);
 
             return [$user->email => $user];

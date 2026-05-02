@@ -20,11 +20,22 @@
         </div>
         <span class="badge" style="background:rgba(255,255,255,0.2); color:#fff;">
             <span class="material-icons-outlined" style="font-size:12px;">group</span>
-            2 PASSENGERS
+            <span id="headerPassengerCount">2 PASSENGERS</span>
         </span>
     </div>
 
     <div class="screen-content" style="padding-top:16px;">
+        <div class="card card-sm incoming-offer-alert" id="incomingOfferAlert" style="display:none;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span class="material-icons-outlined" style="color:#0284c7;">notifications_active</span>
+                <p style="font-size:12px; font-weight:700; color:#0369a1;">
+                    <span id="incomingOfferCountText">1</span> incoming offer waiting
+                </p>
+            </div>
+            <a href="03-incoming-offer.html?return=assigned-pickup" class="btn btn-sm btn-primary" style="width:auto;">
+                Handle Now
+            </a>
+        </div>
 
         <!-- Multi-Waypoint Map -->
         <div class="map-placeholder" style="height:220px; margin-bottom:16px;">
@@ -82,18 +93,63 @@
             Waiting for Pickup
         </p>
         <div class="trip-stack" id="waitingStack">
-            <div class="trip-card trip-card--waiting">
+            <div class="trip-card trip-card--waiting" data-passenger-name="Jose Rizal">
                 <div class="avatar avatar-primary avatar-sm">JR</div>
-                <div class="trip-card-info">
+                <div class="trip-card-body" onclick="toggleBookingDetails(this)">
+                    <div class="trip-card-info">
                     <p class="trip-card-name">Jose Rizal</p>
                     <p class="trip-card-detail">
                         <span class="material-icons-outlined" style="font-size:12px; vertical-align:-2px; color:var(--warning);">info</span>
                         Under the waiting shed, wearing a blue shirt.
                     </p>
+                    </div>
+                    <div class="trip-card-booking-details">
+                        <div class="info-row" style="padding-top:0;">
+                            <span class="label">Pickup</span>
+                            <span class="value">Poblacion Terminal</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Destination</span>
+                            <span class="value">Nongnongan Brgy. Hall</span>
+                        </div>
+                        <div class="info-row" style="border-bottom:none; padding-bottom:0;">
+                            <span class="label">Fare</span>
+                            <span class="value">PHP 45</span>
+                        </div>
+                    </div>
                 </div>
-                <button class="trip-card-action trip-card-action--call">
-                    <span class="material-icons-outlined" style="font-size:14px;">phone</span>
-                    Call
+                <button class="trip-card-action trip-card-select" onclick="setActivePickup(this, 'Jose Rizal')">
+                    Arrived
+                </button>
+            </div>
+
+            <div class="trip-card trip-card--waiting" data-passenger-name="Maria Clara">
+                <div class="avatar avatar-success avatar-sm">MC</div>
+                <div class="trip-card-body" onclick="toggleBookingDetails(this)">
+                    <div class="trip-card-info">
+                        <p class="trip-card-name">Maria Clara</p>
+                        <p class="trip-card-detail">
+                            <span class="material-icons-outlined" style="font-size:12px; vertical-align:-2px; color:var(--warning);">info</span>
+                            Beside market gate waiting area.
+                        </p>
+                    </div>
+                    <div class="trip-card-booking-details">
+                        <div class="info-row" style="padding-top:0;">
+                            <span class="label">Pickup</span>
+                            <span class="value">Kabacan Market</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Destination</span>
+                            <span class="value">USM Main Gate</span>
+                        </div>
+                        <div class="info-row" style="border-bottom:none; padding-bottom:0;">
+                            <span class="label">Fare</span>
+                            <span class="value">PHP 35</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="trip-card-action trip-card-select active" onclick="setActivePickup(this, 'Maria Clara')">
+                    Arrived
                 </button>
             </div>
         </div>
@@ -143,6 +199,94 @@ const btnStates = [
 ];
 let btnIndex = 0;
 
+function setActivePickup(buttonEl, passengerName) {
+    document.querySelectorAll('.trip-card-select').forEach(btn => btn.classList.remove('active'));
+    buttonEl.classList.add('active');
+    document.getElementById('headerTask').textContent = `Arrived at ${passengerName}'s pickup`;
+    document.getElementById('primaryBtnText').textContent = `Start ${passengerName}'s Trip`;
+}
+
+function toggleBookingDetails(bodyEl) {
+    const detailsEl = bodyEl.querySelector('.trip-card-booking-details');
+    if (!detailsEl) return;
+    detailsEl.classList.toggle('open');
+}
+
+function renderAcceptedOffersFromQueue() {
+    const queuedRaw = localStorage.getItem('tricykab_accepted_offers');
+    if (!queuedRaw) return;
+
+    let queuedOffers = [];
+    try {
+        queuedOffers = JSON.parse(queuedRaw) || [];
+    } catch {
+        queuedOffers = [];
+    }
+    if (!queuedOffers.length) return;
+
+    const waitingStack = document.getElementById('waitingStack');
+    if (!waitingStack) return;
+
+    waitingStack.innerHTML = '';
+    queuedOffers.forEach((offer, index) => {
+        const initials = (offer.passenger || 'NA')
+            .split(' ')
+            .map(word => word[0])
+            .join('')
+            .slice(0, 2)
+            .toUpperCase();
+        const isActive = index === 0 ? ' active' : '';
+        const cardHtml = `
+            <div class="trip-card trip-card--waiting" data-passenger-name="${offer.passenger}">
+                <div class="avatar avatar-primary avatar-sm">${initials}</div>
+                <div class="trip-card-body" onclick="toggleBookingDetails(this)">
+                    <div class="trip-card-info">
+                        <p class="trip-card-name">${offer.passenger}</p>
+                        <p class="trip-card-detail">Tap card to view booking details</p>
+                    </div>
+                    <div class="trip-card-booking-details">
+                        <div class="info-row" style="padding-top:0;">
+                            <span class="label">Ride Type</span>
+                            <span class="value">${String(offer.rideType || 'shared').toUpperCase()}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Pickup</span>
+                            <span class="value">${offer.pickup || 'N/A'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Destination</span>
+                            <span class="value">${offer.destination || 'N/A'}</span>
+                        </div>
+                        <div class="info-row" style="border-bottom:none; padding-bottom:0;">
+                            <span class="label">Fare</span>
+                            <span class="value">PHP ${offer.fare ?? '--'}</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="trip-card-action trip-card-select${isActive}" onclick="setActivePickup(this, '${offer.passenger}')">
+                    Arrived
+                </button>
+            </div>
+        `;
+        waitingStack.insertAdjacentHTML('beforeend', cardHtml);
+    });
+
+    const count = queuedOffers.length;
+    document.getElementById('headerPassengerCount').textContent = `${count} PASSENGERS`;
+    document.getElementById('headerTask').textContent = `Pick up ${queuedOffers[0].passenger}`;
+    document.getElementById('primaryBtnText').textContent = `Start ${queuedOffers[0].passenger}'s Trip`;
+}
+
+function renderIncomingOfferNotification() {
+    const alertEl = document.getElementById('incomingOfferAlert');
+    const countEl = document.getElementById('incomingOfferCountText');
+    const newOfferRaw = sessionStorage.getItem('tricykab_assigned_pickup_new_offer');
+    if (newOfferRaw === '1') {
+        alertEl.style.display = 'flex';
+        countEl.textContent = '1';
+    }
+}
+
 function cycleBtnState(e) {
     btnIndex++;
     if (btnIndex >= btnStates.length) {
@@ -172,6 +316,14 @@ function cycleBtnState(e) {
 
     return false;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!sessionStorage.getItem('tricykab_assigned_pickup_new_offer')) {
+        sessionStorage.setItem('tricykab_assigned_pickup_new_offer', '1');
+    }
+    renderAcceptedOffersFromQueue();
+    renderIncomingOfferNotification();
+});
 </script>
 </body>
 </html>

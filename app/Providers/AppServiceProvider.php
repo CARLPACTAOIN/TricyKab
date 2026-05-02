@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Contracts\OtpSmsSender;
+use App\Services\Otp\LogOtpSmsSender;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +13,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(OtpSmsSender::class, LogOtpSmsSender::class);
     }
 
     /**
@@ -26,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
         $host = request()->header('Host', '');
         $environment = config('app.env', 'production');
 
-        \Illuminate\Support\Facades\Log::info('AppServiceProvider booting. Host: ' . $host . ', Env: ' . $environment);
+        \Illuminate\Support\Facades\Log::info('AppServiceProvider booting. Host: '.$host.', Env: '.$environment);
 
         if ($environment === 'production' || str_contains($host, 'ngrok')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');

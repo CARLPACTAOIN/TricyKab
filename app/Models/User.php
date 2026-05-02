@@ -24,6 +24,7 @@ class User extends Authenticatable
         'password',
         'role',
         'phone',
+        'status',
     ];
 
     /**
@@ -71,5 +72,10 @@ class User extends Authenticatable
     public function bookingsAsPassenger()
     {
         return $this->hasMany(Booking::class, 'passenger_id');
+    }
+
+    public function driverProfile()
+    {
+        return $this->hasOne(Driver::class);
     }
 }

@@ -983,6 +983,41 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.trip-card-select {
+  background: var(--warning-light);
+  border: 1px solid #f3d48c;
+  color: #92400e;
+}
+.trip-card-select:hover {
+  background: #fbe7b7;
+}
+.trip-card-select.active {
+  background: var(--warning);
+  color: #fff;
+  border-color: var(--warning);
+}
+.trip-card-body {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+.trip-card-booking-details {
+  margin-top: 10px;
+  border-top: 1px dashed var(--border);
+  padding-top: 10px;
+  display: none;
+}
+.trip-card-booking-details.open {
+  display: block;
+}
+.incoming-offer-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+}
 .trip-card .trip-card-fare {
   font-size: 14px;
   font-weight: 700;

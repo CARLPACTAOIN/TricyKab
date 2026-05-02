@@ -31,7 +31,7 @@
             <div class="offer-track" id="offerTrack">
 
                 <!-- CARD 1: Maria Clara -->
-                <div class="offer-card" data-offer-id="1" id="offerCard1">
+                <div class="offer-card" data-offer-id="1" data-ride-type="shared" id="offerCard1">
                     <!-- Circular Timer -->
                     <div style="text-align:center; margin-bottom:14px;">
                         <div class="circular-timer" id="timer1">
@@ -66,13 +66,7 @@
 
                     <div class="offer-fare">₱35.00</div>
 
-                    <!-- See Details Toggle -->
-                    <button class="details-toggle" onclick="toggleDetails(this)">
-                        See Details
-                        <span class="material-icons-outlined">expand_more</span>
-                    </button>
-
-                    <div class="details-panel">
+                    <div class="details-panel open">
                         <div class="divider" style="margin-top:0;"></div>
                         <div class="grid-2" style="margin-bottom:12px;">
                             <div>
@@ -106,15 +100,15 @@
                             <span class="material-icons-outlined" style="font-size:20px;">close</span>
                             Decline
                         </button>
-                        <a href="04-assigned-pickup.html" class="btn btn-success" style="flex:1;">
+                        <button class="btn btn-success" style="flex:1;" onclick="acceptOffer(1)">
                             <span class="material-icons-outlined" style="font-size:20px;">check</span>
                             Accept
-                        </a>
+                        </button>
                     </div>
                 </div>
 
                 <!-- CARD 2: Jose Rizal -->
-                <div class="offer-card" data-offer-id="2" id="offerCard2">
+                <div class="offer-card" data-offer-id="2" data-ride-type="shared" id="offerCard2">
                     <div style="text-align:center; margin-bottom:14px;">
                         <div class="circular-timer" id="timer2">
                             <svg viewBox="0 0 68 68">
@@ -147,12 +141,7 @@
 
                     <div class="offer-fare">₱45.00</div>
 
-                    <button class="details-toggle" onclick="toggleDetails(this)">
-                        See Details
-                        <span class="material-icons-outlined">expand_more</span>
-                    </button>
-
-                    <div class="details-panel">
+                    <div class="details-panel open">
                         <div class="divider" style="margin-top:0;"></div>
                         <div class="grid-2" style="margin-bottom:12px;">
                             <div>
@@ -185,15 +174,15 @@
                             <span class="material-icons-outlined" style="font-size:20px;">close</span>
                             Decline
                         </button>
-                        <a href="04-assigned-pickup.html" class="btn btn-success" style="flex:1;">
+                        <button class="btn btn-success" style="flex:1;" onclick="acceptOffer(2)">
                             <span class="material-icons-outlined" style="font-size:20px;">check</span>
                             Accept
-                        </a>
+                        </button>
                     </div>
                 </div>
 
                 <!-- CARD 3: Andres Bonifacio -->
-                <div class="offer-card" data-offer-id="3" id="offerCard3">
+                <div class="offer-card" data-offer-id="3" data-ride-type="special" id="offerCard3">
                     <div style="text-align:center; margin-bottom:14px;">
                         <div class="circular-timer" id="timer3">
                             <svg viewBox="0 0 68 68">
@@ -226,12 +215,7 @@
 
                     <div class="offer-fare">₱95.00</div>
 
-                    <button class="details-toggle" onclick="toggleDetails(this)">
-                        See Details
-                        <span class="material-icons-outlined">expand_more</span>
-                    </button>
-
-                    <div class="details-panel">
+                    <div class="details-panel open">
                         <div class="divider" style="margin-top:0;"></div>
                         <div class="grid-2" style="margin-bottom:12px;">
                             <div>
@@ -264,13 +248,24 @@
                             <span class="material-icons-outlined" style="font-size:20px;">close</span>
                             Decline
                         </button>
-                        <a href="04-assigned-pickup.html" class="btn btn-success" style="flex:1;">
+                        <button class="btn btn-success" style="flex:1;" onclick="acceptOffer(3)">
                             <span class="material-icons-outlined" style="font-size:20px;">check</span>
                             Accept
-                        </a>
+                        </button>
                     </div>
                 </div>
 
+            </div>
+        </div>
+
+        <div class="card card-sm" style="margin-top:14px; margin-bottom:0;">
+            <div class="info-row" style="padding-top:0;">
+                <span class="label">Accepted</span>
+                <span class="value" id="acceptedCountText">0</span>
+            </div>
+            <div class="info-row" style="padding-bottom:0; border-bottom:none;">
+                <span class="label">Remaining</span>
+                <span class="value" id="remainingCountText">3</span>
             </div>
         </div>
 
@@ -289,14 +284,26 @@
 const TIMER_DURATION = 20;
 const CIRCUMFERENCE = 2 * Math.PI * 30; // r=30 → ~188.5
 const timers = {};
+const offerMeta = {
+    1: { id: 1, passenger: 'Maria Clara', rideType: 'shared', pickup: 'Kabacan Market', destination: 'USM Main Gate', fare: 35 },
+    2: { id: 2, passenger: 'Jose Rizal', rideType: 'shared', pickup: 'Poblacion Terminal', destination: 'Nongnongan Brgy. Hall', fare: 45 },
+    3: { id: 3, passenger: 'Andres Bonifacio', rideType: 'special', pickup: 'Osias Elementary', destination: 'Kabacan Bus Terminal', fare: 95 }
+};
 let activeCards = [1, 2, 3];
+let acceptedCards = [];
+let handledCards = [];
+let returnToAssignedPickup = false;
 
 /* ── Initialize timers ── */
 function initTimers() {
+    const params = new URLSearchParams(window.location.search);
+    returnToAssignedPickup = params.get('return') === 'assigned-pickup';
     activeCards.forEach(id => {
         timers[id] = { remaining: TIMER_DURATION, interval: null };
         startTimer(id);
     });
+    updateStatusSummary();
+    sessionStorage.removeItem('tricykab_assigned_pickup_new_offer');
 }
 
 function startTimer(id) {
@@ -326,13 +333,13 @@ function startTimer(id) {
 
         if (t <= 0) {
             clearInterval(timers[id].interval);
-            dismissCard(id);
+            dismissCard(id, 'expired');
         }
     }, 1000);
 }
 
 /* ── Dismiss card (timer expire or decline) ── */
-function dismissCard(id) {
+function dismissCard(id, resolution = 'declined') {
     if (timers[id] && timers[id].interval) clearInterval(timers[id].interval);
 
     const card = document.getElementById('offerCard' + id);
@@ -342,15 +349,31 @@ function dismissCard(id) {
 
     // Remove from active list
     activeCards = activeCards.filter(c => c !== id);
+    handledCards.push({ id, resolution });
     updateOfferCount();
+    updateStatusSummary();
 
     card.addEventListener('animationend', () => {
         card.remove();
         updateDots();
 
         if (activeCards.length === 0) {
-            // All offers gone — back to home
-            setTimeout(() => { window.location.href = '02-home.html'; }, 400);
+            const payload = acceptedCards.map(({ id }) => offerMeta[id]).filter(Boolean);
+            if (payload.length > 0) {
+                localStorage.setItem('tricykab_accepted_offers', JSON.stringify(payload));
+            } else {
+                localStorage.removeItem('tricykab_accepted_offers');
+            }
+
+            setTimeout(() => {
+                if (returnToAssignedPickup) {
+                    window.location.href = '04-assigned-pickup.html';
+                } else if (acceptedCards.length > 0) {
+                    window.location.href = '04-assigned-pickup.html';
+                } else {
+                    window.location.href = '02-home.html';
+                }
+            }, 400);
         } else {
             // Scroll to next card
             scrollToCard(0);
@@ -359,21 +382,30 @@ function dismissCard(id) {
 }
 
 function declineOffer(id) {
-    dismissCard(id);
+    dismissCard(id, 'declined');
 }
 
-/* ── Toggle details panel ── */
-function toggleDetails(btn) {
-    const panel = btn.nextElementSibling;
-    btn.classList.toggle('open');
-    panel.classList.toggle('open');
-    btn.textContent = '';
-    if (panel.classList.contains('open')) {
-        btn.innerHTML = 'Hide Details <span class="material-icons-outlined">expand_less</span>';
-    } else {
-        btn.innerHTML = 'See Details <span class="material-icons-outlined">expand_more</span>';
+function acceptOffer(id) {
+    const card = document.getElementById('offerCard' + id);
+    if (!card) return;
+
+    const rideType = card.dataset.rideType || 'shared';
+    const hasAcceptedSpecial = acceptedCards.some(offerId => (offerMeta[offerId]?.rideType || 'shared') === 'special');
+
+    // Requested behavior: multiple accepts only for shared rides.
+    if (rideType === 'special' && acceptedCards.length > 0) {
+        alert('Special ride cannot be queued with other accepted offers. Please decline this special offer or handle others first.');
+        return;
     }
-    btn.classList.toggle('open', panel.classList.contains('open'));
+    if (rideType === 'shared' && hasAcceptedSpecial) {
+        alert('You already accepted a special ride. Additional accepts are disabled for this batch.');
+        return;
+    }
+
+    if (!acceptedCards.includes(id)) {
+        acceptedCards.push(id);
+    }
+    dismissCard(id, 'accepted');
 }
 
 /* ── Carousel scroll tracking ── */
@@ -432,6 +464,13 @@ function updateOfferCount() {
     } else {
         countText.textContent = activeCards.length + (activeCards.length === 1 ? ' offer' : ' offers');
     }
+}
+
+function updateStatusSummary() {
+    const acceptedCountText = document.getElementById('acceptedCountText');
+    const remainingCountText = document.getElementById('remainingCountText');
+    if (acceptedCountText) acceptedCountText.textContent = String(acceptedCards.length);
+    if (remainingCountText) remainingCountText.textContent = String(activeCards.length);
 }
 
 /* ── Start ── */

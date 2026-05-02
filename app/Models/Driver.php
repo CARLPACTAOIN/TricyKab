@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Driver extends Model
 {
     protected $fillable = [
+        'user_id',
         'first_name',
         'last_name',
         'license_number',
@@ -33,6 +34,11 @@ class Driver extends Model
     public function toda()
     {
         return $this->belongsTo(Toda::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function bookings()
