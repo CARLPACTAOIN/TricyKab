@@ -16,6 +16,24 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
+            'idempotent' => \App\Http\Middleware\IdempotencyKey::class,
+            'driver.booking.cancel' => \App\Http\Middleware\EnsureDriverCanCancelBooking::class,
+            'passenger.booking' => \App\Http\Middleware\EnsurePassengerCanCreateBooking::class,
+            'passenger.booking.cancel' => \App\Http\Middleware\EnsurePassengerCanCancelBooking::class,
+            'passenger.booking.read' => \App\Http\Middleware\EnsurePassengerCanReadBooking::class,
+            'driver.dispatch.offers' => \App\Http\Middleware\EnsureDriverCanReadDispatchOffers::class,
+            'driver.booking.accept' => \App\Http\Middleware\EnsureDriverCanAcceptBooking::class,
+            'driver.booking.decline' => \App\Http\Middleware\EnsureDriverCanDeclineBooking::class,
+            'driver.availability' => \App\Http\Middleware\EnsureDriverCanUpdateAvailability::class,
+            'driver.booking.read' => \App\Http\Middleware\EnsureDriverCanReadAssignedBookings::class,
+            'driver.trip.update' => \App\Http\Middleware\EnsureDriverCanUpdateTrip::class,
+            'driver.trip.start' => \App\Http\Middleware\EnsureDriverCanStartTrip::class,
+            'driver.trip.end' => \App\Http\Middleware\EnsureDriverCanEndTrip::class,
+            'driver.trip.passengers' => \App\Http\Middleware\EnsureDriverCanAddTripPassengers::class,
+            'driver.payment.record' => \App\Http\Middleware\EnsureDriverCanRecordPayment::class,
+            'passenger.trip.read' => \App\Http\Middleware\EnsurePassengerCanReadTrip::class,
+            'passenger.receipt.read' => \App\Http\Middleware\EnsurePassengerCanReadReceipt::class,
+            'passenger.sos' => \App\Http\Middleware\EnsurePassengerCanCreateSos::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -13,6 +13,7 @@ use App\Models\OtpChallenge;
 use App\Models\User;
 use App\Support\PhoneNormalizer;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -28,6 +29,8 @@ class OtpChallengeService
 
     private const MAX_VERIFY_ATTEMPTS = 5;
 
+    public const DEV_PLAINTEXT_CACHE_TTL_SECONDS = 300;
+
     private const PASSENGER_ROLE_HINT = 'PASSENGER';
 
     private const DRIVER_ROLE_HINT = 'DRIVER';
@@ -35,6 +38,11 @@ class OtpChallengeService
     public function __construct(
         private readonly OtpSmsSender $otpSmsSender
     ) {}
+
+    public static function devPlaintextCacheKey(string $normalizedPhone, string $roleHint): string
+    {
+        return 'otp-dev-plaintext:'.$normalizedPhone.':'.strtoupper($roleHint);
+    }
 
     /**
      * @return array{challenge_expires_in_seconds: int, resend_available_in_seconds: int}
@@ -79,6 +87,16 @@ class OtpChallengeService
 
         RateLimiter::hit($hourlyKey, self::HOURLY_DECAY_SECONDS);
         RateLimiter::hit($cooldownKey, self::SEND_COOLDOWN_SECONDS);
+
+        // PRD §5 — pilot has no SMS; cache the plaintext OTP briefly so admins can
+        // hand it to testers via the in-panel dev page (only readable when APP_DEBUG is on).
+        if (config('app.debug') === true) {
+            Cache::put(
+                self::devPlaintextCacheKey($normalized, $roleHint),
+                $plain,
+                now()->addSeconds(self::DEV_PLAINTEXT_CACHE_TTL_SECONDS),
+            );
+        }
 
         $this->otpSmsSender->send($normalized, $plain);
 
@@ -235,13 +253,16 @@ class OtpChallengeService
 
         $scopes = [
             'availability:update:self',
+            'booking:read:self',
             'booking:offer:read:self',
             'booking:accept:self',
             'booking:decline:self',
+            'booking:cancel:self',
             'trip:start:self',
             'trip:end:self',
             'trip:update:self',
             'passenger:add:self',
+            'payment:record:self',
             'earnings:read:self',
             'compliance:read:self',
         ];

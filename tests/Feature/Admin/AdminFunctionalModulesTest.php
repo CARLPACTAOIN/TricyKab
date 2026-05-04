@@ -1,9 +1,8 @@
 <?php
 
-use App\Models\Driver;
 use App\Models\Dispute;
+use App\Models\Driver;
 use App\Models\SosAlert;
-use App\Models\Tricycle;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 
@@ -80,7 +79,7 @@ it('filters driver profile by range', function () {
     $this->actingAs($admin)
         ->get(route('drivers.show', ['driver' => $driver->id, 'range' => 'month']))
         ->assertOk()
-        ->assertSee('Driver profile');
+        ->assertSee('Driver Profile');
 });
 
 it('supports bulk dispute and sos actions plus csv exports', function () {

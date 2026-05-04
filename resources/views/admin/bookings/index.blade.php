@@ -28,10 +28,10 @@
             <p class="text-slate-500 mt-1">Operational booking visibility, lifecycle tracking, and manual overrides.</p>
         </div>
         <div class="flex items-center gap-3">
-            <button type="button" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 cursor-not-allowed opacity-70" disabled>
+            <a href="{{ route('admin.bookings.export', request()->query()) }}" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700/50">
                 <span class="material-icons-outlined text-base">download</span>
                 Export CSV
-            </button>
+            </a>
             <button type="button" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm cursor-not-allowed opacity-80" disabled>
                 <span class="material-icons-outlined text-base">picture_as_pdf</span>
                 Export PDF

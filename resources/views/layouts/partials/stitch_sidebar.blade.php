@@ -50,6 +50,12 @@
             <span class="material-icons-outlined mr-3 {{ request()->routeIs('admin.audit-logs') ? '' : 'text-slate-400 group-hover:text-primary' }}">fact_check</span>
             <span class="font-medium">Audit Logs</span>
         </a>
+        @if(config('app.debug') === true)
+            <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('admin.dev.otp') ? 'sidebar-item-active' : 'text-amber-600 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20' }}" href="{{ route('admin.dev.otp') }}">
+                <span class="material-icons-outlined mr-3">vpn_key</span>
+                <span class="font-medium">Dev OTPs</span>
+            </a>
+        @endif
     </nav>
     <div class="p-4 border-t border-slate-200 dark:border-slate-800">
         <div class="flex items-center gap-3 px-2 py-2">

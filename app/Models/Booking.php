@@ -14,6 +14,7 @@ class Booking extends Model
         'pickup_lat',
         'pickup_lng',
         'pickup_address',
+        'pickup_notes',
         'destination_lat',
         'destination_lng',
         'destination_address',
@@ -57,16 +58,27 @@ class Booking extends Model
     // --- Status Constants ---
 
     const STATUS_CREATED = 'CREATED';
+
     const STATUS_SEARCHING_DRIVER = 'SEARCHING_DRIVER';
+
     const STATUS_DRIVER_ASSIGNED = 'DRIVER_ASSIGNED';
+
     const STATUS_DRIVER_ON_THE_WAY = 'DRIVER_ON_THE_WAY';
+
     const STATUS_DRIVER_ARRIVED = 'DRIVER_ARRIVED';
+
     const STATUS_TRIP_IN_PROGRESS = 'TRIP_IN_PROGRESS';
+
     const STATUS_COMPLETED = 'COMPLETED';
+
     const STATUS_CANCELLED_BY_PASSENGER = 'CANCELLED_BY_PASSENGER';
+
     const STATUS_CANCELLED_BY_DRIVER = 'CANCELLED_BY_DRIVER';
+
     const STATUS_CANCELLED_NO_DRIVER = 'CANCELLED_NO_DRIVER';
+
     const STATUS_NO_SHOW_DRIVER = 'NO_SHOW_DRIVER';
+
     const STATUS_NO_SHOW_PASSENGER = 'NO_SHOW_PASSENGER';
 
     // --- Relationships ---
@@ -91,9 +103,24 @@ class Booking extends Model
         return $this->hasOne(Payment::class);
     }
 
+    public function receipt()
+    {
+        return $this->hasOne(Receipt::class);
+    }
+
     public function disputes()
     {
         return $this->hasMany(Dispute::class);
+    }
+
+    public function dispatchAttempts()
+    {
+        return $this->hasMany(BookingDispatchAttempt::class);
+    }
+
+    public function trip()
+    {
+        return $this->hasOne(Trip::class);
     }
 
     public function originBarangay()

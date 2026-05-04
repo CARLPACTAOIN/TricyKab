@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Toda;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BookingController extends Controller
 {
@@ -97,7 +98,7 @@ class BookingController extends Controller
             'winner' => $booking->driver?->full_name ?? '—',
             'status' => $booking->driver_id ? 'ASSIGNED' : $booking->status,
             'duration' => $booking->accepted_at
-                ? $booking->created_at?->diffInSeconds($booking->accepted_at) . 's'
+                ? $booking->created_at?->diffInSeconds($booking->accepted_at).'s'
                 : '—',
         ]];
 
@@ -130,6 +131,52 @@ class BookingController extends Controller
         ]);
     }
 
+    public function export(Request $request): StreamedResponse
+    {
+        $search = trim((string) $request->input('search', ''));
+        $selectedRideType = $request->string('ride_type')->toString() ?: null;
+        $selectedRideType = in_array($selectedRideType, ['shared', 'special'], true) ? $selectedRideType : null;
+        $selectedTodaId = $request->filled('toda_id') ? (int) $request->input('toda_id') : null;
+        $selectedDateScope = $request->string('date_scope')->toString() ?: 'today';
+        $selectedDateScope = in_array($selectedDateScope, ['today', '7d', 'all'], true) ? $selectedDateScope : 'today';
+        $statusTabs = $this->statusTabs();
+        $selectedTab = $request->string('tab')->toString() ?: 'all';
+        $selectedTab = array_key_exists($selectedTab, $statusTabs) ? $selectedTab : 'all';
+
+        $query = $this->applyFilters(
+            Booking::query()->with(['passenger', 'driver.toda']),
+            $search,
+            $selectedRideType,
+            $selectedTodaId,
+            $selectedDateScope
+        );
+
+        if ($statusTabs[$selectedTab]['statuses']) {
+            $query->whereIn('status', $statusTabs[$selectedTab]['statuses']);
+        }
+
+        $rows = $query->latest('created_at')->get();
+
+        return response()->streamDownload(function () use ($rows) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['BookingReference', 'Status', 'RideType', 'Passenger', 'Driver', 'TODA', 'Fare', 'CreatedAt', 'CompletedAt']);
+            foreach ($rows as $booking) {
+                fputcsv($handle, [
+                    $booking->booking_reference,
+                    $booking->status,
+                    $booking->ride_type,
+                    $booking->passenger?->name,
+                    $booking->driver?->full_name,
+                    $booking->driver?->toda?->name,
+                    $booking->fare_amount,
+                    $booking->created_at?->toDateTimeString(),
+                    $booking->completed_at?->toDateTimeString(),
+                ]);
+            }
+            fclose($handle);
+        }, 'bookings-export-'.now()->format('Ymd-His').'.csv', ['Content-Type' => 'text/csv']);
+    }
+
     private function applyFilters(
         Builder $query,
         string $search,
@@ -140,17 +187,17 @@ class BookingController extends Controller
         if ($search !== '') {
             $query->where(function (Builder $bookingQuery) use ($search) {
                 $bookingQuery
-                    ->where('booking_reference', 'like', '%' . $search . '%')
-                    ->orWhere('pickup_address', 'like', '%' . $search . '%')
-                    ->orWhere('destination_address', 'like', '%' . $search . '%')
+                    ->where('booking_reference', 'like', '%'.$search.'%')
+                    ->orWhere('pickup_address', 'like', '%'.$search.'%')
+                    ->orWhere('destination_address', 'like', '%'.$search.'%')
                     ->orWhereHas('passenger', function (Builder $passengerQuery) use ($search) {
-                        $passengerQuery->where('name', 'like', '%' . $search . '%');
+                        $passengerQuery->where('name', 'like', '%'.$search.'%');
                     })
                     ->orWhereHas('driver', function (Builder $driverQuery) use ($search) {
                         $driverQuery
-                            ->where('first_name', 'like', '%' . $search . '%')
-                            ->orWhere('last_name', 'like', '%' . $search . '%')
-                            ->orWhere('license_number', 'like', '%' . $search . '%');
+                            ->where('first_name', 'like', '%'.$search.'%')
+                            ->orWhere('last_name', 'like', '%'.$search.'%')
+                            ->orWhere('license_number', 'like', '%'.$search.'%');
                     });
             });
         }

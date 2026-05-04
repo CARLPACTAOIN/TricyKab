@@ -149,6 +149,7 @@ class DatabaseSeeder extends Seeder
                 'address' => 'Kabacan, Cotabato',
                 'rating' => round(rand(35, 50) / 10, 2),
                 'status' => 'active',
+                'availability_status' => Driver::AVAILABILITY_ONLINE,
                 'tricycle_id' => $tricycle->id,
                 'toda_id' => $tricycle->toda_id,
             ]);
@@ -174,6 +175,7 @@ class DatabaseSeeder extends Seeder
             'address' => 'Kabacan, Cotabato',
             'rating' => 4.20,
             'status' => 'inactive',
+            'availability_status' => Driver::AVAILABILITY_OFFLINE,
             'tricycle_id' => null,
             'toda_id' => $todaPoblacion->id,
         ]);
@@ -377,9 +379,12 @@ class DatabaseSeeder extends Seeder
         foreach ($completedBookings as $booking) {
             Payment::create([
                 'booking_id' => $booking->id,
-                'method' => 'cash',
+                'method' => 'CASH',
                 'amount' => $booking->fare_amount,
-                'status' => 'completed',
+                'currency' => 'PHP',
+                'status' => 'COMPLETED',
+                'paid_at' => $booking->completed_at ?? now(),
+                'recorded_by_role' => 'SYSTEM',
             ]);
         }
 

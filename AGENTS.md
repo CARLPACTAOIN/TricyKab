@@ -1,3 +1,8 @@
+---
+description: 
+alwaysApply: true
+---
+
 # AGENTS.md
 
 ## Source of Truth
@@ -45,3 +50,19 @@
 - Reference `PRD_MD_V2.md`, `PRD_PROGRESS_AUDIT.md`, and `.agent/skills/.agent/skills/ui-ux-pro-max/SKILL.md` directly when they are relevant to the task.
 - Prefer correcting implementation toward the PRD over preserving legacy behavior that predates the PRD.
 - If a task changes project progress in a meaningful way, update the audit in the same task before considering the work complete.
+
+# Model Usage & Credit Optimization
+- Before starting any task, analyze if it belongs to "Core Logic" or "Boilerplate".
+- **Core Logic (Use Premium Models):**
+    - Section 11: Booking State Machine transitions and transactional locks.
+    - Section 12: Dispatch Engine ranking algorithms and radius expansion.
+    - Section 5 & 22: OTP security flows and Idempotency logic.
+    - Real-time Firebase synchronization and state reconciliation.
+- **Boilerplate (Suggest Auto Mode):**
+    - Section 7: Basic SQL Migrations and Model definitions.
+    - Section 9: Standard CRUD API contracts.
+    - Section 15 & 16: UI Widget layouts (Flutter) and Admin Blade/Inertia views.
+    - Basic unit tests or documentation.
+
+- **MANDATORY ACTION:** Every time I give a prompt, start your response with:
+  "MODEL ADVICE: [Premium/Auto] - [Brief Reason]."

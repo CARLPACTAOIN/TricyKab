@@ -144,7 +144,8 @@ it('returns success for active seeded driver', function () {
 
     $response->assertOk();
     $response->assertJsonPath('data.user.role', 'DRIVER');
-    expect($response->json('data.scopes'))->toContain('booking:accept:self');
+    expect($response->json('data.scopes'))->toContain('booking:accept:self')
+        ->and($response->json('data.scopes'))->toContain('booking:read:self');
 });
 
 it('returns 429 after five otp requests in one hour when cooldown bypassed', function () {

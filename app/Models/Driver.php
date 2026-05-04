@@ -18,10 +18,23 @@ class Driver extends Model
         'status',
         'tricycle_id',
         'toda_id',
+        'availability_status',
+        'last_availability_at',
+        'last_latitude',
+        'last_longitude',
+        'last_accuracy_meters',
     ];
+
+    public const AVAILABILITY_OFFLINE = 'OFFLINE';
+
+    public const AVAILABILITY_ONLINE = 'ONLINE';
 
     protected $casts = [
         'rating' => 'decimal:2',
+        'last_availability_at' => 'datetime',
+        'last_latitude' => 'decimal:7',
+        'last_longitude' => 'decimal:7',
+        'last_accuracy_meters' => 'decimal:2',
     ];
 
     // --- Relationships ---

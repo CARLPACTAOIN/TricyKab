@@ -1,11 +1,12 @@
 <?php
 
-use App\Http\Controllers\Admin\BookingController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\DisputeController;
-use App\Http\Controllers\Admin\SosAlertController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\BookingController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DevOtpController;
+use App\Http\Controllers\Admin\DisputeController;
+use App\Http\Controllers\Admin\SosAlertController;
 use App\Http\Controllers\Admin\StandbyPointController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -80,6 +81,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
 // Admin Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/dashboard-export', [DashboardController::class, 'export'])->name('admin.dashboard.export');
 
     Route::get('/search', [\App\Http\Controllers\Admin\SearchController::class, 'index'])->name('admin.search');
 
@@ -87,13 +89,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::resource('todas', \App\Http\Controllers\Admin\TodaController::class);
     Route::resource('tricycles', \App\Http\Controllers\Admin\TricycleController::class);
     Route::resource('drivers', \App\Http\Controllers\Admin\DriverController::class);
-    
+
     // Fare Management
     Route::get('fares', [\App\Http\Controllers\Admin\FareController::class, 'index'])->name('fares.index');
     Route::post('fares', [\App\Http\Controllers\Admin\FareController::class, 'store'])->name('fares.store');
-    
+
     // Bookings & Trips
     Route::get('bookings', [BookingController::class, 'index'])->name('admin.bookings');
+    Route::get('bookings-export', [BookingController::class, 'export'])->name('admin.bookings.export');
     Route::get('bookings/{reference}', [BookingController::class, 'show'])->name('admin.bookings.show');
 
     // Standby Points
@@ -117,6 +120,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // Audit Logs
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs');
     Route::get('audit-logs-export', [AuditLogController::class, 'export'])->name('admin.audit-logs.export');
+
+    // Dev tools (visible only when APP_DEBUG is true)
+    Route::get('dev/otp', [DevOtpController::class, 'index'])->name('admin.dev.otp');
 });
 
 require __DIR__.'/auth.php';
@@ -133,20 +139,20 @@ Route::get('/mockups/{path?}', function (?string $path = null) {
         abort(404);
     }
 
-    $full = $base . DIRECTORY_SEPARATOR . $path;
+    $full = $base.DIRECTORY_SEPARATOR.$path;
 
     // Support directory paths by serving index.html
     if (is_dir($full)) {
-        $full = rtrim($full, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'index.html';
+        $full = rtrim($full, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'index.html';
     }
 
-    if (!is_file($full)) {
+    if (! is_file($full)) {
         abort(404);
     }
 
     $ext = strtolower(pathinfo($full, PATHINFO_EXTENSION));
     $allowed = ['html', 'css', 'js', 'png', 'jpg', 'jpeg', 'svg', 'webp', 'gif', 'ico'];
-    if (!in_array($ext, $allowed, true)) {
+    if (! in_array($ext, $allowed, true)) {
         abort(404);
     }
 

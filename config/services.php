@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'firebase' => [
+        'projection_enabled' => filter_var(
+            env('FIREBASE_PROJECTION_ENABLED', false),
+            FILTER_VALIDATE_BOOL
+        ),
+    ],
+
 ];

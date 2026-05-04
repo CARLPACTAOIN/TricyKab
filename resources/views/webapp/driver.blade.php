@@ -1,5 +1,9 @@
 @extends('layouts.webapp')
 
+@section('head')
+    <meta name="api-base" content="{{ url('/api/v1') }}">
+@endsection
+
 @section('title', 'Driver App - TricyKab')
 
 @section('content')
@@ -54,8 +58,13 @@
                         <p class="text-xl font-extrabold text-secondary">PHP 1,520</p>
                     </div>
                 </div>
+                <p class="text-xs text-slate-500">Optional: paste a driver Sanctum token from <code class="rounded bg-slate-100 px-1">POST /api/v1/auth/otp/verify</code> to load offers and run trip actions against the API.</p>
+                <label class="mt-2 block">
+                    <span class="mb-1 block text-xs font-semibold text-slate-500">API access token</span>
+                    <input id="apiTokenInput" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs outline-none focus:border-primary" type="password" autocomplete="off" placeholder="Bearer token">
+                </label>
                 <button id="simulateOfferBtn" class="mt-4 w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-primary/90">
-                    Simulate Incoming Offer
+                    Fetch / simulate offer
                 </button>
             </div>
 
@@ -82,16 +91,16 @@
             <div class="grid gap-3 sm:grid-cols-2">
                 <div class="rounded-xl bg-slate-100 p-3">
                     <p class="text-xs uppercase text-slate-500">Pickup</p>
-                    <p class="text-sm font-semibold text-slate-700">Kabacan Public Market</p>
+                    <p id="offerPickupText" class="text-sm font-semibold text-slate-700">Kabacan Public Market</p>
                 </div>
                 <div class="rounded-xl bg-slate-100 p-3">
                     <p class="text-xs uppercase text-slate-500">Destination</p>
-                    <p class="text-sm font-semibold text-slate-700">USM Main Gate</p>
+                    <p id="offerDestText" class="text-sm font-semibold text-slate-700">USM Main Gate</p>
                 </div>
             </div>
             <div class="mt-3 rounded-xl bg-primary/5 p-3">
                 <p class="text-xs uppercase tracking-wide text-primary/80">Ride Type / Fare</p>
-                <p class="text-sm font-bold text-primary">SHARED - PHP 35.00</p>
+                <p id="offerFareText" class="text-sm font-bold text-primary">SHARED — PHP 35.00</p>
             </div>
             <div class="mt-4 grid grid-cols-2 gap-2">
                 <button id="declineOfferBtn" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100">Decline</button>
@@ -105,10 +114,15 @@
 @section('scripts')
 <script>
 (() => {
+    const apiBase = document.querySelector('meta[name="api-base"]')?.getAttribute('content') || '';
+
     const state = {
         online: true,
         phase: 'WAITING_OFFERS',
         countdown: null,
+        tripId: null,
+        bookingId: null,
+        pendingOffer: null,
     };
 
     const onlineToggle = document.getElementById('onlineToggle');
@@ -125,6 +139,25 @@
     const startTripBtn = document.getElementById('startTripBtn');
     const addPassengerBtn = document.getElementById('addPassengerBtn');
     const endTripBtn = document.getElementById('endTripBtn');
+
+    const offerPickupText = document.getElementById('offerPickupText');
+    const offerDestText = document.getElementById('offerDestText');
+    const offerFareText = document.getElementById('offerFareText');
+
+    const getToken = () => {
+        const v = document.getElementById('apiTokenInput')?.value?.trim();
+        if (v) {
+            try { localStorage.setItem('tricykab_driver_api_token', v); } catch (e) { /* ignore */ }
+            return v;
+        }
+        try { return localStorage.getItem('tricykab_driver_api_token') || ''; } catch (e) { return ''; }
+    };
+
+    const authHeaders = (json = false) => {
+        const h = { Accept: 'application/json', Authorization: `Bearer ${getToken()}` };
+        if (json) h['Content-Type'] = 'application/json';
+        return h;
+    };
 
     const setPhase = (phase) => {
         state.phase = phase;
@@ -162,10 +195,8 @@
         }
     };
 
-    const openOffer = () => {
-        if (!state.online) return;
-        offerSheet.classList.remove('hidden');
-        let left = 15;
+    const startCountdown = (seconds) => {
+        let left = Math.max(1, seconds || 15);
         offerCountdown.textContent = `${left}s`;
         if (state.countdown) clearInterval(state.countdown);
         state.countdown = setInterval(() => {
@@ -178,30 +209,250 @@
         }, 1000);
     };
 
-    onlineToggle.addEventListener('click', () => {
+    const openOfferDemo = () => {
+        if (!state.online) return;
+        offerPickupText.textContent = 'Kabacan Public Market';
+        offerDestText.textContent = 'USM Main Gate';
+        offerFareText.textContent = 'SHARED — PHP 35.00';
+        offerSheet.classList.remove('hidden');
+        startCountdown(15);
+    };
+
+    const mapOfferToUi = (raw) => {
+        const b = raw.booking || {};
+        const pu = b.pickup || {};
+        const de = b.destination || {};
+        offerPickupText.textContent = pu.address || 'Pickup';
+        offerDestText.textContent = de.address || 'Destination';
+        const fare = b.estimated_fare != null ? `PHP ${b.estimated_fare}` : '—';
+        offerFareText.textContent = `${(b.ride_type || 'SHARED')} — ${fare}`;
+        state.pendingOffer = {
+            bookingId: b.id,
+            candidateId: raw.candidate_id,
+            dispatchAttemptId: raw.dispatch_attempt_id,
+            pickupLat: pu.latitude ?? 7.1083,
+            pickupLng: pu.longitude ?? 124.8295,
+            destLat: de.latitude ?? 7.1117,
+            destLng: de.longitude ?? 124.8419,
+            fareAmount: b.estimated_fare != null ? String(b.estimated_fare) : '35.00',
+        };
+    };
+
+    const fetchDispatchOffer = async () => {
+        const r = await fetch(`${apiBase}/drivers/me/dispatch-offers`, { headers: authHeaders(false) });
+        const body = await r.json().catch(() => ({}));
+        if (!r.ok || !body.success) {
+            alert(body?.error?.message || 'No offers or request failed.');
+            return;
+        }
+        const offers = body.data?.offers || [];
+        if (!offers.length) {
+            alert('No pending dispatch offers.');
+            return;
+        }
+        mapOfferToUi(offers[0]);
+        offerSheet.classList.remove('hidden');
+        startCountdown(offers[0].countdown_seconds ?? 60);
+    };
+
+    onlineToggle.addEventListener('click', async () => {
         state.online = !state.online;
         onlineToggle.textContent = state.online ? 'ONLINE' : 'OFFLINE';
         onlineToggle.className = `rounded-lg px-3 py-1.5 text-xs font-bold text-white ${state.online ? 'bg-success' : 'bg-slate-500'}`;
+        const tok = getToken();
+        if (tok && apiBase) {
+            try {
+                await fetch(`${apiBase}/drivers/me/availability`, {
+                    method: 'POST',
+                    headers: authHeaders(true),
+                    body: JSON.stringify({
+                        driver_status: state.online ? 'ONLINE' : 'OFFLINE',
+                        latitude: state.online ? 7.114 : null,
+                        longitude: state.online ? 124.836 : null,
+                    }),
+                });
+            } catch (e) { /* ignore */ }
+        }
         if (!state.online) {
             closeOffer();
             setPhase('WAITING_OFFERS');
         }
     });
 
-    simulateOfferBtn.addEventListener('click', openOffer);
-    declineOfferBtn.addEventListener('click', () => {
+    simulateOfferBtn.addEventListener('click', () => {
+        if (!state.online) return;
+        if (getToken() && apiBase) {
+            fetchDispatchOffer();
+            return;
+        }
+        openOfferDemo();
+    });
+
+    declineOfferBtn.addEventListener('click', async () => {
+        const tok = getToken();
+        const p = state.pendingOffer;
+        if (tok && apiBase && p?.bookingId) {
+            try {
+                await fetch(`${apiBase}/drivers/bookings/${p.bookingId}/decline`, {
+                    method: 'POST',
+                    headers: authHeaders(true),
+                    body: JSON.stringify({
+                        dispatch_attempt_id: p.dispatchAttemptId,
+                        candidate_id: p.candidateId,
+                        reason_code: 'TOO_FAR',
+                    }),
+                });
+            } catch (e) { /* ignore */ }
+        }
+        state.pendingOffer = null;
         closeOffer();
         setPhase('WAITING_OFFERS');
     });
-    acceptOfferBtn.addEventListener('click', () => {
+
+    acceptOfferBtn.addEventListener('click', async () => {
+        const tok = getToken();
+        const p = state.pendingOffer;
+        if (tok && apiBase && p?.bookingId) {
+            try {
+                const r = await fetch(`${apiBase}/drivers/bookings/${p.bookingId}/accept`, {
+                    method: 'POST',
+                    headers: authHeaders(true),
+                    body: JSON.stringify({
+                        dispatch_attempt_id: p.dispatchAttemptId,
+                        candidate_id: p.candidateId,
+                    }),
+                });
+                const body = await r.json().catch(() => ({}));
+                if (!r.ok || !body.success) {
+                    alert(body?.error?.message || 'Accept failed');
+                    closeOffer();
+                    return;
+                }
+                state.tripId = body.data?.trip_id ?? null;
+                state.bookingId = p.bookingId;
+            } catch (e) {
+                alert('Network error');
+                closeOffer();
+                return;
+            }
+        } else {
+            state.tripId = null;
+            state.bookingId = null;
+        }
         closeOffer();
         setPhase('ASSIGNED_PICKUP');
     });
 
-    arrivedBtn.addEventListener('click', () => setPhase('ARRIVED'));
-    startTripBtn.addEventListener('click', () => setPhase('TRIP_IN_PROGRESS'));
-    addPassengerBtn.addEventListener('click', () => alert('Shared passenger added. Capacity: 2/4'));
-    endTripBtn.addEventListener('click', () => setPhase('TRIP_COMPLETED'));
+    const postTripGeo = async (pathSuffix, extra = {}) => {
+        const p = state.pendingOffer;
+        const lat = p?.pickupLat ?? 7.1083;
+        const lng = p?.pickupLng ?? 124.8295;
+        const r = await fetch(`${apiBase}/drivers/trips/${state.tripId}${pathSuffix}`, {
+            method: 'POST',
+            headers: authHeaders(true),
+            body: JSON.stringify({ latitude: lat, longitude: lng, accuracy_meters: 6, ...extra }),
+        });
+        const body = await r.json().catch(() => ({}));
+        if (!r.ok || !body.success) throw new Error(body?.error?.message || pathSuffix);
+    };
+
+    arrivedBtn.addEventListener('click', async () => {
+        const tok = getToken();
+        if (tok && apiBase && state.tripId) {
+            try {
+                await postTripGeo('/arrive');
+            } catch (e) {
+                alert(e.message || 'Arrive failed');
+                return;
+            }
+        }
+        setPhase('ARRIVED');
+    });
+
+    startTripBtn.addEventListener('click', async () => {
+        const tok = getToken();
+        if (tok && apiBase && state.tripId) {
+            try {
+                await postTripGeo('/start');
+            } catch (e) {
+                alert(e.message || 'Start failed');
+                return;
+            }
+        }
+        setPhase('TRIP_IN_PROGRESS');
+    });
+
+    addPassengerBtn.addEventListener('click', async () => {
+        const tok = getToken();
+        if (tok && apiBase && state.tripId) {
+            try {
+                const r = await fetch(`${apiBase}/drivers/trips/${state.tripId}/add-passengers`, {
+                    method: 'POST',
+                    headers: authHeaders(true),
+                    body: JSON.stringify({ quantity: 1, notes: 'Webapp walk-in' }),
+                });
+                const body = await r.json().catch(() => ({}));
+                if (!r.ok || !body.success) throw new Error(body?.error?.message || 'add-passengers');
+                alert('Passenger count updated on server.');
+            } catch (e) {
+                alert(e.message || 'Failed');
+            }
+            return;
+        }
+        alert('Shared passenger added (demo).');
+    });
+
+    endTripBtn.addEventListener('click', async () => {
+        const tok = getToken();
+        const p = state.pendingOffer;
+        if (tok && apiBase && state.tripId && p) {
+            try {
+                const r = await fetch(`${apiBase}/drivers/trips/${state.tripId}/end`, {
+                    method: 'POST',
+                    headers: authHeaders(true),
+                    body: JSON.stringify({
+                        latitude: p.destLat,
+                        longitude: p.destLng,
+                        accuracy_meters: 8,
+                    }),
+                });
+                const endBody = await r.json().catch(() => ({}));
+                if (!r.ok || !endBody.success) throw new Error(endBody?.error?.message || 'end');
+                if (state.bookingId) {
+                    const pr = await fetch(`${apiBase}/payments/${state.bookingId}/record`, {
+                        method: 'POST',
+                        headers: authHeaders(true),
+                        body: JSON.stringify({
+                            amount: p.fareAmount,
+                            method: 'CASH',
+                            recorded_by_role: 'DRIVER',
+                            notes: 'Recorded from driver webapp',
+                        }),
+                    });
+                    const payBody = await pr.json().catch(() => ({}));
+                    if (pr.ok && payBody.success) {
+                        const rc = payBody.data?.receipt?.receipt_number || '—';
+                        alert(`Trip completed. Receipt: ${rc}`);
+                    }
+                }
+            } catch (e) {
+                alert(e.message || 'End trip failed');
+                return;
+            }
+        }
+        state.pendingOffer = null;
+        state.tripId = null;
+        state.bookingId = null;
+        setPhase('TRIP_COMPLETED');
+    });
+
+    (function hydrateToken() {
+        try {
+            const tok = localStorage.getItem('tricykab_driver_api_token');
+            const inp = document.getElementById('apiTokenInput');
+            if (tok && inp) inp.value = tok;
+        } catch (e) { /* ignore */ }
+    })();
 
     setPhase('WAITING_OFFERS');
 })();

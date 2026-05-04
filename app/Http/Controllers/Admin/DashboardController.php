@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DashboardController extends Controller
 {
@@ -117,6 +118,41 @@ class DashboardController extends Controller
             'destinationHeatmapPoints' => $destinationHeatmapPoints,
             'latestBookings' => $latestBookings,
         ]);
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        $selectedRange = $request->string('range')->toString() ?: '7d';
+        $selectedRange = in_array($selectedRange, ['7d', '30d', 'month'], true) ? $selectedRange : '7d';
+        $selectedTodaId = $request->filled('toda_id') ? (int) $request->input('toda_id') : null;
+        $selectedBarangayId = $request->filled('barangay_id') ? (int) $request->input('barangay_id') : null;
+
+        $filteredQuery = $this->applyFilters(
+            Booking::query()->with(['passenger', 'driver']),
+            $selectedRange,
+            $selectedTodaId,
+            $selectedBarangayId
+        );
+
+        $rows = (clone $filteredQuery)->latest('created_at')->get();
+
+        return response()->streamDownload(function () use ($rows) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['BookingReference', 'Status', 'RideType', 'Passenger', 'Driver', 'Fare', 'CreatedAt', 'CompletedAt']);
+            foreach ($rows as $booking) {
+                fputcsv($handle, [
+                    $booking->booking_reference,
+                    $booking->status,
+                    $booking->ride_type,
+                    $booking->passenger?->name,
+                    $booking->driver?->full_name,
+                    $booking->fare_amount,
+                    $booking->created_at?->toDateTimeString(),
+                    $booking->completed_at?->toDateTimeString(),
+                ]);
+            }
+            fclose($handle);
+        }, 'dashboard-kpi-export-'.now()->format('Ymd-His').'.csv', ['Content-Type' => 'text/csv']);
     }
 
     private function applyFilters(Builder $query, string $range, ?int $todaId, ?int $barangayId): Builder
