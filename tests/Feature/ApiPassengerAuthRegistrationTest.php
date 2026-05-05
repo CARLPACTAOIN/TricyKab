@@ -82,3 +82,30 @@ it('blocks login when phone is not verified', function () {
     $login->assertJsonPath('error.code', 'FORBIDDEN');
 });
 
+it('rejects registration when phone number is already taken', function () {
+    $sender = bindCapturingOtpSenderForPassengerReg();
+
+    // Seed an existing user with a phone number.
+    User::query()->create([
+        'name' => 'Existing User',
+        'email' => 'existing@example.com',
+        'password' => bcrypt('password123'),
+        'role' => 'passenger',
+        'phone' => '+639199998888',
+        'status' => 'ACTIVE',
+    ]);
+
+    $resp = $this->postJson('/api/v1/passenger/register', [
+        'email' => 'another@example.com',
+        'password' => 'password123',
+        'first_name' => 'New',
+        'last_name' => 'Passenger',
+        // Same number but in a different format should still be rejected after normalization.
+        'phone_number' => '0919 999 8888',
+    ]);
+
+    $resp->assertStatus(422);
+    $resp->assertJsonPath('error.code', 'VALIDATION_ERROR');
+    expect($sender->lastCode)->toBeNull();
+});
+

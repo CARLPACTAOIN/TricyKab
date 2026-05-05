@@ -27,6 +27,12 @@ class PassengerAuthController extends Controller
             ]);
         }
 
+        if (User::query()->where('phone', $normalizedPhone)->exists()) {
+            throw ValidationException::withMessages([
+                'phone_number' => ['This phone number is already registered.'],
+            ]);
+        }
+
         $user = User::query()->create([
             'role' => 'passenger',
             'status' => 'ACTIVE',
