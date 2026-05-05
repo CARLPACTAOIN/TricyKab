@@ -28,6 +28,14 @@ class Tricycle extends Model
         return $this->hasOne(Driver::class);
     }
 
+    /**
+     * A tricycle may be associated with multiple drivers (e.g. rental/shift use).
+     */
+    public function drivers()
+    {
+        return $this->hasMany(Driver::class);
+    }
+
     public function bookings()
     {
         return $this->hasMany(Booking::class);

@@ -37,7 +37,6 @@ class DriverController extends Controller
         $todas = Toda::where('status', 'active')->get();
         $tricycles = Tricycle::where('status', 'active')
             ->where('registration_status', 'ACTIVE')
-            ->doesntHave('driver')
             ->get();
         return view('admin.drivers.index', compact('drivers', 'todas', 'tricycles'));
     }
@@ -50,7 +49,6 @@ class DriverController extends Controller
         $todas = Toda::where('status', 'active')->get();
         $tricycles = Tricycle::where('status', 'active')
             ->where('registration_status', 'ACTIVE')
-            ->doesntHave('driver')
             ->get();
         return view('admin.drivers.create', compact('todas', 'tricycles'));
     }
@@ -168,8 +166,7 @@ class DriverController extends Controller
         $tricycles = Tricycle::where('status', 'active')
             ->where('registration_status', 'ACTIVE')
             ->where(function ($query) use ($driver) {
-                $query->doesntHave('driver')
-                    ->orWhere('id', $driver->tricycle_id);
+                $query->orWhere('id', $driver->tricycle_id);
             })
             ->get();
         return view('admin.drivers.edit', compact('driver', 'todas', 'tricycles'));

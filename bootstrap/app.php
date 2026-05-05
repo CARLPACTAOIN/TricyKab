@@ -14,6 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Allow reverse proxies (e.g. ngrok / nginx) to convey the original
+        // scheme/host via X-Forwarded-* headers so URL generation + redirects
+        // behave correctly under HTTPS tunnels.
+        $middleware->trustProxies(at: '*');
+
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
             'idempotent' => \App\Http\Middleware\IdempotencyKey::class,
