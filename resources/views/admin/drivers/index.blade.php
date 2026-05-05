@@ -88,7 +88,13 @@
                             <button type="button" onclick="document.getElementById('editDriverModal-{{ $driver->id }}').classList.remove('hidden')" class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md text-slate-400 hover:text-amber-600 transition-colors" title="Edit">
                                 <span class="material-icons-outlined text-xl">edit</span>
                             </button>
-                            <form action="{{ route('drivers.destroy', $driver->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure?');">
+                            <form
+                                action="{{ route('drivers.destroy', $driver->id) }}"
+                                method="POST"
+                                class="inline-block"
+                                data-confirm-delete
+                                data-confirm-delete-item="driver &quot;{{ e($driver->first_name . ' ' . $driver->last_name) }}&quot;"
+                            >
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md text-slate-400 hover:text-red-600 transition-colors" title="Delete">

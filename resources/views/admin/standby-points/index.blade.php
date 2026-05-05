@@ -121,7 +121,12 @@
                                     >
                                         <span class="material-icons-outlined text-xl">edit</span>
                                     </a>
-                                    <form method="POST" action="{{ route('admin.standby-points.destroy', $point) }}" onsubmit="return confirm('Delete standby point \"{{ addslashes($point->name) }}\"? This cannot be undone.');">
+                                    <form
+                                        method="POST"
+                                        action="{{ route('admin.standby-points.destroy', $point) }}"
+                                        data-confirm-delete
+                                        data-confirm-delete-item="standby point &quot;{{ e($point->name) }}&quot;"
+                                    >
                                         @csrf
                                         @method('DELETE')
                                         <button
