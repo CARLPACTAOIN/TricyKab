@@ -80,16 +80,12 @@ class DriverController extends Controller
             ])->withInput();
         }
 
-        // Ensure the phone isn't already bound to another driver user.
-        $existingDriverUser = User::query()
-            ->where('role', 'driver')
+        // `users.phone` is UNIQUE across roles. If this phone already exists
+        // (e.g., seeded/tested as passenger), reuse that record and convert
+        // it to a driver account for OTP login to work.
+        $existingUser = User::query()
             ->where('phone', $normalizedPhone)
             ->first();
-        if ($existingDriverUser !== null) {
-            return back()->withErrors([
-                'contact_number' => 'This phone number is already registered to another driver account.',
-            ])->withInput();
-        }
 
         if (! empty($validated['tricycle_id'])) {
             $isValidTricycle = Tricycle::query()
@@ -102,6 +98,31 @@ class DriverController extends Controller
                     'tricycle_id' => 'Assigned tricycle must be active and LTO registration must be ACTIVE.',
                 ])->withInput();
             }
+        }
+
+        if ($existingUser !== null) {
+            if ($existingUser->role !== 'driver') {
+                $existingUser->role = 'driver';
+                $existingUser->status = 'ACTIVE';
+                $existingUser->name = trim($validated['first_name'].' '.$validated['last_name']);
+                $existingUser->save();
+            }
+
+            $existingDriver = Driver::query()
+                ->where('user_id', $existingUser->id)
+                ->first();
+
+            // If the driver profile already exists, update it; otherwise create it.
+            $validated['user_id'] = $existingUser->id;
+            $validated['contact_number'] = $normalizedPhone;
+
+            if ($existingDriver !== null) {
+                $existingDriver->update($validated);
+            } else {
+                Driver::query()->create($validated);
+            }
+
+            return redirect()->route('drivers.index')->with('success', 'Driver saved successfully.');
         }
 
         $user = User::query()->create([
@@ -260,7 +281,6 @@ class DriverController extends Controller
 
         // Prevent phone collision with other driver users.
         $phoneTaken = User::query()
-            ->where('role', 'driver')
             ->where('phone', $normalizedPhone)
             ->where('id', '!=', $user->id)
             ->exists();
