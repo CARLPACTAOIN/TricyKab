@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
             'idempotent' => \App\Http\Middleware\IdempotencyKey::class,
             'driver.booking.cancel' => \App\Http\Middleware\EnsureDriverCanCancelBooking::class,
+            'driver.profile.read' => \App\Http\Middleware\EnsureDriverCanReadProfile::class,
             'passenger.booking' => \App\Http\Middleware\EnsurePassengerCanCreateBooking::class,
             'passenger.booking.cancel' => \App\Http\Middleware\EnsurePassengerCanCancelBooking::class,
             'passenger.booking.read' => \App\Http\Middleware\EnsurePassengerCanReadBooking::class,

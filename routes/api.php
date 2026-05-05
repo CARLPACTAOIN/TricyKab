@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\DriverAvailabilityController;
 use App\Http\Controllers\Api\V1\DriverBookingController;
 use App\Http\Controllers\Api\V1\DriverDispatchController;
+use App\Http\Controllers\Api\V1\DriverProfileController;
 use App\Http\Controllers\Api\V1\DriverTripController;
 use App\Http\Controllers\Api\V1\OtpAuthController;
 use App\Http\Controllers\Api\V1\PassengerAuthController;
@@ -59,6 +60,9 @@ Route::prefix('v1')->group(function (): void {
 
     Route::middleware(['auth:sanctum', 'driver.availability'])
         ->post('/drivers/me/availability', [DriverAvailabilityController::class, 'store']);
+
+    Route::middleware(['auth:sanctum', 'driver.profile.read'])
+        ->get('/drivers/me/profile', [DriverProfileController::class, 'show']);
 
     Route::middleware(['auth:sanctum', 'driver.booking.read'])->group(function (): void {
         Route::get('/drivers/me/bookings', [DriverBookingController::class, 'index']);
