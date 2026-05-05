@@ -3,12 +3,14 @@
 <li class="slide__category"><span class="category-name">Fleet Management</span></li>
 <!-- End::slide__category -->
 
+@if(auth()->user()->isLguAdmin())
 <li class="slide">
     <a href="{{ route('todas.index') }}" class="side-menu__item">
         <i class="ri-community-line side-menu__icon"></i>
         <span class="side-menu__label">TODAs</span>
     </a>
 </li>
+@endif
 
 <li class="slide">
     <a href="{{ route('tricycles.index') }}" class="side-menu__item">

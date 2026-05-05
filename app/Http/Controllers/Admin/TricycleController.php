@@ -14,6 +14,10 @@ class TricycleController extends Controller
     {
         $query = \App\Models\Tricycle::with(['toda', 'driver']);
 
+        if ($request->user()->isTodaAdmin()) {
+            $query->where('toda_id', $request->user()->toda_id);
+        }
+
         if ($request->filled('search')) {
             $term = $request->search;
             $query->where(function ($q) use ($term) {
@@ -32,7 +36,11 @@ class TricycleController extends Controller
         }
 
         $tricycles = $query->latest()->paginate(10)->withQueryString();
-        $todas = \App\Models\Toda::all();
+        
+        $todas = $request->user()->isTodaAdmin() 
+            ? \App\Models\Toda::where('id', $request->user()->toda_id)->get() 
+            : \App\Models\Toda::all();
+
         return view('admin.tricycles.index', compact('tricycles', 'todas'));
     }
 
@@ -41,7 +49,10 @@ class TricycleController extends Controller
      */
     public function create()
     {
-        $todas = \App\Models\Toda::all();
+        $todas = request()->user()->isTodaAdmin() 
+            ? \App\Models\Toda::where('id', request()->user()->toda_id)->get() 
+            : \App\Models\Toda::all();
+
         return view('admin.tricycles.create', compact('todas'));
     }
 
@@ -59,6 +70,10 @@ class TricycleController extends Controller
             'registration_status' => 'required|in:ACTIVE,EXPIRED,PENDING,SUSPENDED',
             'capacity' => 'required|integer|min:1|max:8',
         ]);
+
+        if ($request->user()->isTodaAdmin()) {
+            $validated['toda_id'] = $request->user()->toda_id;
+        }
 
         \App\Models\Tricycle::create($validated);
 
@@ -78,8 +93,16 @@ class TricycleController extends Controller
      */
     public function edit(string $id)
     {
-        $tricycle = \App\Models\Tricycle::findOrFail($id);
-        $todas = \App\Models\Toda::all();
+        $query = \App\Models\Tricycle::query();
+        if (request()->user()->isTodaAdmin()) {
+            $query->where('toda_id', request()->user()->toda_id);
+        }
+        $tricycle = $query->findOrFail($id);
+        
+        $todas = request()->user()->isTodaAdmin() 
+            ? \App\Models\Toda::where('id', request()->user()->toda_id)->get() 
+            : \App\Models\Toda::all();
+            
         return view('admin.tricycles.edit', compact('tricycle', 'todas'));
     }
 
@@ -98,7 +121,15 @@ class TricycleController extends Controller
             'capacity' => 'required|integer|min:1|max:8',
         ]);
 
-        $tricycle = \App\Models\Tricycle::findOrFail($id);
+        if ($request->user()->isTodaAdmin()) {
+            $validated['toda_id'] = $request->user()->toda_id;
+        }
+
+        $query = \App\Models\Tricycle::query();
+        if ($request->user()->isTodaAdmin()) {
+            $query->where('toda_id', $request->user()->toda_id);
+        }
+        $tricycle = $query->findOrFail($id);
         $tricycle->update($validated);
 
         return redirect()->route('tricycles.index')->with('success', 'Tricycle updated successfully.');
@@ -109,7 +140,11 @@ class TricycleController extends Controller
      */
     public function destroy(string $id)
     {
-        $tricycle = \App\Models\Tricycle::findOrFail($id);
+        $query = \App\Models\Tricycle::query();
+        if (request()->user()->isTodaAdmin()) {
+            $query->where('toda_id', request()->user()->toda_id);
+        }
+        $tricycle = $query->findOrFail($id);
         $tricycle->delete();
 
         return redirect()->route('tricycles.index')->with('success', 'Tricycle deleted successfully.');

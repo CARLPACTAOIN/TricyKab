@@ -16,7 +16,11 @@ class BookingController extends Controller
         $search = trim((string) $request->input('search', ''));
         $selectedRideType = $request->string('ride_type')->toString() ?: null;
         $selectedRideType = in_array($selectedRideType, ['shared', 'special'], true) ? $selectedRideType : null;
-        $selectedTodaId = $request->filled('toda_id') ? (int) $request->input('toda_id') : null;
+        if ($request->user()->isTodaAdmin()) {
+            $selectedTodaId = $request->user()->toda_id;
+        } else {
+            $selectedTodaId = $request->filled('toda_id') ? (int) $request->input('toda_id') : null;
+        }
         $selectedDateScope = $request->string('date_scope')->toString() ?: 'today';
         $selectedDateScope = in_array($selectedDateScope, ['today', '7d', 'all'], true) ? $selectedDateScope : 'today';
         $statusTabs = $this->statusTabs();
@@ -136,7 +140,11 @@ class BookingController extends Controller
         $search = trim((string) $request->input('search', ''));
         $selectedRideType = $request->string('ride_type')->toString() ?: null;
         $selectedRideType = in_array($selectedRideType, ['shared', 'special'], true) ? $selectedRideType : null;
-        $selectedTodaId = $request->filled('toda_id') ? (int) $request->input('toda_id') : null;
+        if ($request->user()->isTodaAdmin()) {
+            $selectedTodaId = $request->user()->toda_id;
+        } else {
+            $selectedTodaId = $request->filled('toda_id') ? (int) $request->input('toda_id') : null;
+        }
         $selectedDateScope = $request->string('date_scope')->toString() ?: 'today';
         $selectedDateScope = in_array($selectedDateScope, ['today', '7d', 'all'], true) ? $selectedDateScope : 'today';
         $statusTabs = $this->statusTabs();

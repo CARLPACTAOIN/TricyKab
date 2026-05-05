@@ -23,6 +23,10 @@ class DriverController extends Controller
     {
         $query = Driver::with(['toda', 'tricycle']);
 
+        if ($request->user()->isTodaAdmin()) {
+            $query->where('toda_id', $request->user()->toda_id);
+        }
+
         if ($request->filled('search')) {
             $term = $request->search;
             $query->where(function ($q) use ($term) {
@@ -38,22 +42,32 @@ class DriverController extends Controller
         }
 
         $drivers = $query->latest()->paginate(10)->withQueryString();
-        $todas = Toda::where('status', 'active')->get();
-        $tricycles = Tricycle::where('status', 'active')
-            ->where('registration_status', 'ACTIVE')
-            ->get();
+        $todas = $request->user()->isTodaAdmin()
+            ? Toda::where('id', $request->user()->toda_id)->where('status', 'active')->get()
+            : Toda::where('status', 'active')->get();
+
+        $tricyclesQuery = Tricycle::where('status', 'active')->where('registration_status', 'ACTIVE');
+        if ($request->user()->isTodaAdmin()) {
+            $tricyclesQuery->where('toda_id', $request->user()->toda_id);
+        }
+        $tricycles = $tricyclesQuery->get();
         return view('admin.drivers.index', compact('drivers', 'todas', 'tricycles'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        $todas = Toda::where('status', 'active')->get();
-        $tricycles = Tricycle::where('status', 'active')
-            ->where('registration_status', 'ACTIVE')
-            ->get();
+        $todas = $request->user()->isTodaAdmin()
+            ? Toda::where('id', $request->user()->toda_id)->where('status', 'active')->get()
+            : Toda::where('status', 'active')->get();
+
+        $tricyclesQuery = Tricycle::where('status', 'active')->where('registration_status', 'ACTIVE');
+        if ($request->user()->isTodaAdmin()) {
+            $tricyclesQuery->where('toda_id', $request->user()->toda_id);
+        }
+        $tricycles = $tricyclesQuery->get();
         return view('admin.drivers.create', compact('todas', 'tricycles'));
     }
 
@@ -72,6 +86,10 @@ class DriverController extends Controller
             'tricycle_id' => 'nullable|exists:tricycles,id',
             'status' => 'required|in:active,inactive',
         ]);
+
+        if ($request->user()->isTodaAdmin()) {
+            $validated['toda_id'] = $request->user()->toda_id;
+        }
 
         $normalizedPhone = PhoneNormalizer::normalize($validated['contact_number']);
         if ($normalizedPhone === null) {
@@ -145,11 +163,13 @@ class DriverController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
-        $driver = Driver::query()
-            ->with(['toda', 'tricycle', 'bookings.payment', 'disputes.booking'])
-            ->findOrFail($id);
+        $query = Driver::query()->with(['toda', 'tricycle', 'bookings.payment', 'disputes.booking']);
+        if ($request->user()->isTodaAdmin()) {
+            $query->where('toda_id', $request->user()->toda_id);
+        }
+        $driver = $query->findOrFail($id);
 
         $range = request()->string('range')->toString() ?: 'today';
         $range = in_array($range, ['today', 'week', 'month'], true) ? $range : 'today';
@@ -214,16 +234,28 @@ class DriverController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Request $request, string $id)
     {
-        $driver = Driver::findOrFail($id);
-        $todas = Toda::where('status', 'active')->get();
-        $tricycles = Tricycle::where('status', 'active')
+        $query = Driver::query();
+        if ($request->user()->isTodaAdmin()) {
+            $query->where('toda_id', $request->user()->toda_id);
+        }
+        $driver = $query->findOrFail($id);
+
+        $todas = $request->user()->isTodaAdmin()
+            ? Toda::where('id', $request->user()->toda_id)->where('status', 'active')->get()
+            : Toda::where('status', 'active')->get();
+
+        $tricyclesQuery = Tricycle::where('status', 'active')
             ->where('registration_status', 'ACTIVE')
             ->where(function ($query) use ($driver) {
                 $query->orWhere('id', $driver->tricycle_id);
-            })
-            ->get();
+            });
+            
+        if ($request->user()->isTodaAdmin()) {
+            $tricyclesQuery->where('toda_id', $request->user()->toda_id);
+        }
+        $tricycles = $tricyclesQuery->get();
         return view('admin.drivers.edit', compact('driver', 'todas', 'tricycles'));
     }
 
@@ -242,6 +274,10 @@ class DriverController extends Controller
             'tricycle_id' => 'nullable|exists:tricycles,id',
             'status' => 'required|in:active,inactive',
         ]);
+
+        if ($request->user()->isTodaAdmin()) {
+            $validated['toda_id'] = $request->user()->toda_id;
+        }
 
         $normalizedPhone = PhoneNormalizer::normalize($validated['contact_number']);
         if ($normalizedPhone === null) {
@@ -263,7 +299,11 @@ class DriverController extends Controller
             }
         }
 
-        $driver = Driver::findOrFail($id);
+        $query = Driver::query();
+        if ($request->user()->isTodaAdmin()) {
+            $query->where('toda_id', $request->user()->toda_id);
+        }
+        $driver = $query->findOrFail($id);
 
         // Ensure driver has a linked user row (OTP login requires it).
         $user = $driver->user_id ? User::query()->find($driver->user_id) : null;
@@ -303,9 +343,13 @@ class DriverController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        $driver = Driver::findOrFail($id);
+        $query = Driver::query();
+        if ($request->user()->isTodaAdmin()) {
+            $query->where('toda_id', $request->user()->toda_id);
+        }
+        $driver = $query->findOrFail($id);
         $driver->delete();
 
         return redirect()->route('drivers.index')->with('success', 'Driver deleted successfully.');

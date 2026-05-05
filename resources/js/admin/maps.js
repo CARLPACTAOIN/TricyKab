@@ -321,6 +321,170 @@ async function initBookingRouteMap(root) {
     scheduleMapResize(map);
 }
 
+/** ── Interactive location picker for standby point create/edit ────────── */
+function initStandbyPointPicker(root) {
+    const payload  = parsePayload(root);
+    const initLat  = payload.lat  ?? DEFAULT_CENTER[0];
+    const initLng  = payload.lng  ?? DEFAULT_CENTER[1];
+    const initRadius = Number(payload.radius ?? 50);
+
+    const latInput = document.getElementById('latitude');
+    const lngInput = document.getElementById('longitude');
+    const radiusInput = document.getElementById('radius_meters');
+    const hint = document.getElementById('picker-hint');
+
+    const map = createLeafletMap(root, {
+        center: { lat: initLat, lng: initLng },
+        zoom: payload.zoom ?? 15,
+    });
+
+    // ── Draggable marker ──────────────────────────────────────────────────
+    const marker = L.marker([initLat, initLng], { draggable: true }).addTo(map);
+
+    // ── Radius circle ─────────────────────────────────────────────────────
+    let circle = L.circle([initLat, initLng], {
+        radius: initRadius,
+        color: '#2563eb',
+        weight: 2,
+        opacity: 0.9,
+        fillColor: '#2563eb',
+        fillOpacity: 0.14,
+    }).addTo(map);
+
+    function updateInputs(lat, lng) {
+        if (latInput) latInput.value = lat.toFixed(7);
+        if (lngInput) lngInput.value = lng.toFixed(7);
+        if (hint) hint.style.display = 'none';
+    }
+
+    function moveMarker(lat, lng) {
+        marker.setLatLng([lat, lng]);
+        circle.setLatLng([lat, lng]);
+        updateInputs(lat, lng);
+    }
+
+    // Click on map → move marker
+    map.on('click', (e) => {
+        moveMarker(e.latlng.lat, e.latlng.lng);
+    });
+
+    // Drag marker → update inputs
+    marker.on('dragend', () => {
+        const { lat, lng } = marker.getLatLng();
+        circle.setLatLng([lat, lng]);
+        updateInputs(lat, lng);
+    });
+
+    // Radius input → redraw circle
+    if (radiusInput) {
+        radiusInput.addEventListener('input', () => {
+            const r = Math.max(1, parseInt(radiusInput.value, 10) || 50);
+            circle.setRadius(r);
+        });
+    }
+
+    // Manual lat/lng input → move marker
+    [latInput, lngInput].forEach((input) => {
+        if (!input) return;
+        input.addEventListener('change', () => {
+            const lat = parseFloat(latInput?.value);
+            const lng = parseFloat(lngInput?.value);
+            if (Number.isFinite(lat) && Number.isFinite(lng)) {
+                moveMarker(lat, lng);
+                map.setView([lat, lng], map.getZoom());
+            }
+        });
+    });
+
+    // ── GPS "Use my location" button ─────────────────────────────────────
+    const gpsBtn = document.getElementById('btn-use-my-location');
+    if (gpsBtn) {
+        gpsBtn.addEventListener('click', () => {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser.');
+                return;
+            }
+            gpsBtn.disabled = true;
+            gpsBtn.textContent = 'Locating…';
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    moveMarker(lat, lng);
+                    map.setView([lat, lng], 17);
+                    gpsBtn.disabled = false;
+                    gpsBtn.innerHTML = '<span class="material-icons-outlined text-sm">my_location</span> Use my location';
+                },
+                () => {
+                    alert('Unable to retrieve your location.');
+                    gpsBtn.disabled = false;
+                    gpsBtn.innerHTML = '<span class="material-icons-outlined text-sm">my_location</span> Use my location';
+                },
+            );
+        });
+    }
+
+    // ── Nominatim geocoding search ─────────────────────────────────────
+    const searchInput = document.getElementById('map-search-input');
+    const searchResults = document.getElementById('map-search-results');
+    let searchDebounce = null;
+
+    if (searchInput && searchResults) {
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchDebounce);
+            const query = searchInput.value.trim();
+            if (query.length < 3) {
+                searchResults.classList.add('hidden');
+                searchResults.innerHTML = '';
+                return;
+            }
+            searchDebounce = setTimeout(async () => {
+                try {
+                    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&q=${encodeURIComponent(query)}&countrycodes=ph&viewbox=124.7,7.0,125.0,7.3&bounded=0`;
+                    const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+                    const items = await res.json();
+
+                    searchResults.innerHTML = '';
+                    if (!items.length) {
+                        searchResults.innerHTML = '<p class="px-4 py-3 text-sm text-slate-500">No results found.</p>';
+                        searchResults.classList.remove('hidden');
+                        return;
+                    }
+
+                    items.forEach((item) => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'w-full text-left px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-100 dark:border-slate-800 last:border-0 transition-colors';
+                        btn.textContent = item.display_name;
+                        btn.addEventListener('click', () => {
+                            const lat = parseFloat(item.lat);
+                            const lng = parseFloat(item.lon);
+                            moveMarker(lat, lng);
+                            map.setView([lat, lng], 17);
+                            searchInput.value = item.display_name;
+                            searchResults.classList.add('hidden');
+                        });
+                        searchResults.appendChild(btn);
+                    });
+
+                    searchResults.classList.remove('hidden');
+                } catch {
+                    // silently fail
+                }
+            }, 400);
+        });
+
+        // Close dropdown on outside click
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.add('hidden');
+            }
+        });
+    }
+
+    scheduleMapResize(map);
+}
+
 function initStandbyPointMap(root) {
     const payload = parsePayload(root);
     const points = Array.isArray(payload.points) ? payload.points : [];
@@ -374,6 +538,10 @@ async function initMapRoot(root) {
 
     if (context === 'standby-points') {
         initStandbyPointMap(root);
+    }
+
+    if (context === 'standby-point-picker') {
+        initStandbyPointPicker(root);
     }
 }
 

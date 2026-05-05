@@ -15,12 +15,14 @@
                     <option value="{{ $rangeKey }}" {{ $selectedRange === $rangeKey ? 'selected' : '' }}>{{ $rangeLabel }}</option>
                 @endforeach
             </select>
+            @if(auth()->user()->isLguAdmin())
             <select name="toda_id" class="px-3 py-2 border rounded-lg text-sm">
                 <option value="">All TODAs</option>
                 @foreach($todas as $toda)
                     <option value="{{ $toda->id }}" {{ (string)$selectedTodaId === (string)$toda->id ? 'selected' : '' }}>{{ $toda->name }}</option>
                 @endforeach
             </select>
+            @endif
             <button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium">Apply</button>
         </form>
     </div>

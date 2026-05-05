@@ -25,6 +25,11 @@ class Toda extends Model
         return $this->hasMany(Driver::class);
     }
 
+    public function admins()
+    {
+        return $this->hasMany(User::class, 'toda_id');
+    }
+
     public function standbyPoints()
     {
         return $this->hasMany(StandbyPoint::class);

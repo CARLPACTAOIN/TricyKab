@@ -43,6 +43,7 @@
                     <option value="month" @selected($selectedRange === 'month')>This month</option>
                 </select>
             </div>
+            @if(auth()->user()->isLguAdmin())
             <div class="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm">
                 <span class="material-icons-outlined text-slate-400 text-lg">groups</span>
                 <select name="toda_id" onchange="this.form.submit()" class="bg-transparent border-none focus:ring-0 text-slate-700 dark:text-slate-200">
@@ -52,6 +53,7 @@
                     @endforeach
                 </select>
             </div>
+            @endif
             <div class="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm">
                 <span class="material-icons-outlined text-slate-400 text-lg">location_on</span>
                 <select name="barangay_id" onchange="this.form.submit()" class="bg-transparent border-none focus:ring-0 text-slate-700 dark:text-slate-200">

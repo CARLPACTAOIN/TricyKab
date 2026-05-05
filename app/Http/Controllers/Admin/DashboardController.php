@@ -19,7 +19,11 @@ class DashboardController extends Controller
     {
         $selectedRange = $request->string('range')->toString() ?: '7d';
         $selectedRange = in_array($selectedRange, ['7d', '30d', 'month'], true) ? $selectedRange : '7d';
-        $selectedTodaId = $request->filled('toda_id') ? (int) $request->input('toda_id') : null;
+        if ($request->user()->isTodaAdmin()) {
+            $selectedTodaId = $request->user()->toda_id;
+        } else {
+            $selectedTodaId = $request->filled('toda_id') ? (int) $request->input('toda_id') : null;
+        }
         $selectedBarangayId = $request->filled('barangay_id') ? (int) $request->input('barangay_id') : null;
 
         $filteredQuery = $this->applyFilters(
@@ -70,8 +74,13 @@ class DashboardController extends Controller
             ? round(($completedBookings->count() / $assignedBookings->count()) * 100)
             : 0;
 
-        $activeDrivers = Driver::query()->where('status', 'active')->count();
-        $totalDrivers = Driver::query()->count();
+        $driverQuery = Driver::query();
+        if ($request->user()->isTodaAdmin()) {
+            $driverQuery->where('toda_id', $request->user()->toda_id);
+        }
+
+        $activeDrivers = (clone $driverQuery)->where('status', 'active')->count();
+        $totalDrivers = (clone $driverQuery)->count();
         $driverAvailabilityRate = $totalDrivers > 0
             ? round(($activeDrivers / $totalDrivers) * 100)
             : 0;
@@ -124,7 +133,11 @@ class DashboardController extends Controller
     {
         $selectedRange = $request->string('range')->toString() ?: '7d';
         $selectedRange = in_array($selectedRange, ['7d', '30d', 'month'], true) ? $selectedRange : '7d';
-        $selectedTodaId = $request->filled('toda_id') ? (int) $request->input('toda_id') : null;
+        if ($request->user()->isTodaAdmin()) {
+            $selectedTodaId = $request->user()->toda_id;
+        } else {
+            $selectedTodaId = $request->filled('toda_id') ? (int) $request->input('toda_id') : null;
+        }
         $selectedBarangayId = $request->filled('barangay_id') ? (int) $request->input('barangay_id') : null;
 
         $filteredQuery = $this->applyFilters(

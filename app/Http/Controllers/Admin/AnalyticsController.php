@@ -16,7 +16,15 @@ class AnalyticsController extends Controller
     {
         $range = $request->string('range')->toString() ?: '7d';
         $range = in_array($range, ['7d', '30d', 'month'], true) ? $range : '7d';
-        $todaId = $request->filled('toda_id') ? (int) $request->input('toda_id') : null;
+        $user = auth()->user();
+        
+        // Force `$todaId` if the user is a TODA Admin
+        if ($user->isTodaAdmin()) {
+            $todaId = $user->toda_id;
+        } else {
+            $todaId = $request->filled('toda_id') ? (int) $request->input('toda_id') : null;
+        }
+        
         $start = $this->resolveRangeStart($range);
 
         $bookingsQuery = Booking::query()->with('driver')->where('created_at', '>=', $start);
