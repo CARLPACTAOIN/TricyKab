@@ -65,6 +65,13 @@
                                 </div>
                                 <div>
                                     <label for="tricycle_id" class="ti-form-label">Assigned Tricycle</label>
+                                    <input
+                                        type="text"
+                                        id="tricycle_search"
+                                        class="ti-form-input mb-2"
+                                        placeholder="Search tricycles (body # / plate #)…"
+                                        autocomplete="off"
+                                    >
                                     <select class="ti-form-select @error('tricycle_id') !border-red-500 @enderror" id="tricycle_id" name="tricycle_id">
                                         <option value="">— Select Tricycle —</option>
                                         @foreach($tricycles as $tricycle)
@@ -74,6 +81,9 @@
                                     @error('tricycle_id')
                                         <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
                                     @enderror
+                                    <p class="text-xs text-textmuted mt-2">
+                                        Tip: type to filter the dropdown list. Clearing the search shows all again.
+                                    </p>
                                 </div>
                             </div>
                             <div>
@@ -111,3 +121,39 @@
     </div>
     <!-- End Grid -->
 @endsection
+
+@push('scripts')
+<script>
+  (function () {
+    const input = document.getElementById('tricycle_search');
+    const select = document.getElementById('tricycle_id');
+    if (!input || !select) return;
+
+    const options = Array.from(select.options).map((opt) => ({
+      el: opt,
+      value: opt.value,
+      label: (opt.text || '').toLowerCase(),
+      isPlaceholder: opt.value === '',
+    }));
+
+    function applyFilter() {
+      const q = (input.value || '').trim().toLowerCase();
+      for (const o of options) {
+        if (o.isPlaceholder) {
+          o.el.hidden = false;
+          continue;
+        }
+        o.el.hidden = q.length > 0 ? !o.label.includes(q) : false;
+      }
+
+      const selected = select.options[select.selectedIndex];
+      if (selected && selected.hidden) {
+        select.value = '';
+      }
+    }
+
+    input.addEventListener('input', applyFilter);
+    applyFilter();
+  })();
+</script>
+@endpush
