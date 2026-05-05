@@ -8,6 +8,7 @@ use App\Exceptions\Otp\OperationForbiddenException;
 use App\Exceptions\Otp\OtpChallengeLockedException;
 use App\Exceptions\Otp\OtpHourlyRateLimitedException;
 use App\Exceptions\Otp\OtpSendCooldownException;
+use App\Services\Auth\TokenIssuer;
 use App\Models\Driver;
 use App\Models\OtpChallenge;
 use App\Models\User;
@@ -36,7 +37,8 @@ class OtpChallengeService
     private const DRIVER_ROLE_HINT = 'DRIVER';
 
     public function __construct(
-        private readonly OtpSmsSender $otpSmsSender
+        private readonly OtpSmsSender $otpSmsSender,
+        private readonly TokenIssuer $tokenIssuer,
     ) {}
 
     public static function devPlaintextCacheKey(string $normalizedPhone, string $roleHint): string
@@ -113,6 +115,24 @@ class OtpChallengeService
     {
         $normalized = $this->validatedNormalizedPhone($phoneRaw);
 
+        $roleHint = $this->consumeChallengeAndGetRoleHint($normalized, $otpCode);
+
+        if ($roleHint === self::PASSENGER_ROLE_HINT) {
+            return $this->finalizePassengerAuth($normalized, $deviceId);
+        }
+
+        return $this->finalizeDriverAuth($normalized, $deviceId);
+    }
+
+    public function verifyForPhoneVerification(string $phoneRaw, string $otpCode): string
+    {
+        $normalized = $this->validatedNormalizedPhone($phoneRaw);
+
+        return $this->consumeChallengeAndGetRoleHint($normalized, $otpCode);
+    }
+
+    private function consumeChallengeAndGetRoleHint(string $normalizedPhone, string $otpCode): string
+    {
         $otpCode = preg_replace('/\D+/', '', $otpCode) ?? '';
         if (strlen($otpCode) !== 6) {
             throw ValidationException::withMessages([
@@ -120,36 +140,63 @@ class OtpChallengeService
             ]);
         }
 
-        $challenge = OtpChallenge::query()
-            ->where('phone_number', $normalized)
+        $challenges = OtpChallenge::query()
+            ->where('phone_number', $normalizedPhone)
             ->whereNull('consumed_at')
             ->orderByDesc('id')
-            ->first();
+            ->get();
 
-        if ($challenge === null) {
+        if ($challenges->isEmpty()) {
             throw ValidationException::withMessages([
                 'otp_code' => ['No active OTP challenge for this phone number.'],
             ]);
         }
 
-        if ($challenge->locked_at !== null) {
-            throw new OtpChallengeLockedException('This OTP challenge is locked due to too many failed attempts.');
-        }
+        /** @var ?OtpChallenge $matched */
+        $matched = null;
+        /** @var ?OtpChallenge $latestEligibleForAttempts */
+        $latestEligibleForAttempts = null;
+        $hasAnyUnexpired = false;
+        $hasAnyUnlockedUnexpired = false;
 
-        if ($challenge->expires_at->isPast()) {
-            throw ValidationException::withMessages([
-                'otp_code' => ['OTP code has expired. Request a new code.'],
-            ]);
-        }
-
-        if (! Hash::check($otpCode, $challenge->otp_hash)) {
-            $challenge->verify_attempts = (int) $challenge->verify_attempts + 1;
-            if ($challenge->verify_attempts >= self::MAX_VERIFY_ATTEMPTS) {
-                $challenge->locked_at = now();
+        foreach ($challenges as $c) {
+            if ($c->expires_at->isPast()) {
+                continue;
             }
-            $challenge->save();
 
-            if ($challenge->locked_at !== null) {
+            $hasAnyUnexpired = true;
+
+            if ($c->locked_at !== null) {
+                continue;
+            }
+
+            $hasAnyUnlockedUnexpired = true;
+            $latestEligibleForAttempts ??= $c;
+
+            if (Hash::check($otpCode, $c->otp_hash)) {
+                $matched = $c;
+                break;
+            }
+        }
+
+        if ($matched === null) {
+            if (! $hasAnyUnexpired) {
+                throw ValidationException::withMessages([
+                    'otp_code' => ['OTP code has expired. Request a new code.'],
+                ]);
+            }
+
+            if (! $hasAnyUnlockedUnexpired) {
+                throw new OtpChallengeLockedException('This OTP challenge is locked due to too many failed attempts.');
+            }
+
+            $latestEligibleForAttempts->verify_attempts = (int) $latestEligibleForAttempts->verify_attempts + 1;
+            if ($latestEligibleForAttempts->verify_attempts >= self::MAX_VERIFY_ATTEMPTS) {
+                $latestEligibleForAttempts->locked_at = now();
+            }
+            $latestEligibleForAttempts->save();
+
+            if ($latestEligibleForAttempts->locked_at !== null) {
                 throw new OtpChallengeLockedException('Too many incorrect OTP attempts.');
             }
 
@@ -158,23 +205,17 @@ class OtpChallengeService
             ]);
         }
 
-        $challenge->consumed_at = now();
-        $challenge->save();
+        $matched->consumed_at = now();
+        $matched->save();
 
         OtpChallenge::query()
-            ->where('phone_number', $normalized)
-            ->where('role_hint', $challenge->role_hint)
+            ->where('phone_number', $normalizedPhone)
+            ->where('role_hint', $matched->role_hint)
             ->whereNull('consumed_at')
-            ->where('id', '!=', $challenge->getKey())
+            ->where('id', '!=', $matched->getKey())
             ->update(['consumed_at' => now()]);
 
-        $roleHint = $challenge->role_hint ?? self::PASSENGER_ROLE_HINT;
-
-        if ($roleHint === self::PASSENGER_ROLE_HINT) {
-            return $this->finalizePassengerAuth($normalized, $deviceId);
-        }
-
-        return $this->finalizeDriverAuth($normalized, $deviceId);
+        return $matched->role_hint ?? self::PASSENGER_ROLE_HINT;
     }
 
     private function validatedNormalizedPhone(string $phoneRaw): string
@@ -222,7 +263,7 @@ class OtpChallengeService
             'dispute:create:self',
         ];
 
-        return $this->issueTokensAndPayload($user, 'PASSENGER', $scopes, $deviceId);
+        return $this->tokenIssuer->issue($user, 'PASSENGER', $scopes, $deviceId);
     }
 
     /**
@@ -267,7 +308,7 @@ class OtpChallengeService
             'compliance:read:self',
         ];
 
-        return $this->issueTokensAndPayload($user, 'DRIVER', $scopes, $deviceId);
+        return $this->tokenIssuer->issue($user, 'DRIVER', $scopes, $deviceId);
     }
 
     private function assertUserActive(User $user): void
@@ -277,29 +318,4 @@ class OtpChallengeService
         }
     }
 
-    /**
-     * @param  array<int, string>  $scopes
-     * @return array{access_token: string, refresh_token: string, user: array{id: int, role: string, status: string}, scopes: array<int, string>}
-     */
-    private function issueTokensAndPayload(User $user, string $roleUpper, array $scopes, ?string $deviceId): array
-    {
-        $suffix = $deviceId !== null && $deviceId !== '' ? ':'.$deviceId : '';
-
-        $accessExpires = CarbonImmutable::now()->addHours(12);
-        $refreshExpires = CarbonImmutable::now()->addDays(30);
-
-        $accessToken = $user->createToken('access'.$suffix, $scopes, $accessExpires)->plainTextToken;
-        $refreshToken = $user->createToken('refresh'.$suffix, ['refresh'], $refreshExpires)->plainTextToken;
-
-        return [
-            'access_token' => $accessToken,
-            'refresh_token' => $refreshToken,
-            'user' => [
-                'id' => $user->id,
-                'role' => $roleUpper,
-                'status' => $user->status ?? 'ACTIVE',
-            ],
-            'scopes' => $scopes,
-        ];
-    }
 }

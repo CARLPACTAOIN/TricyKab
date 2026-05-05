@@ -34,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'passenger.trip.read' => \App\Http\Middleware\EnsurePassengerCanReadTrip::class,
             'passenger.receipt.read' => \App\Http\Middleware\EnsurePassengerCanReadReceipt::class,
             'passenger.sos' => \App\Http\Middleware\EnsurePassengerCanCreateSos::class,
+            'passenger.verified' => \App\Http\Middleware\EnsurePassengerAccountVerified::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

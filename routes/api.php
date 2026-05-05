@@ -5,7 +5,9 @@ use App\Http\Controllers\Api\V1\DriverBookingController;
 use App\Http\Controllers\Api\V1\DriverDispatchController;
 use App\Http\Controllers\Api\V1\DriverTripController;
 use App\Http\Controllers\Api\V1\OtpAuthController;
+use App\Http\Controllers\Api\V1\PassengerAuthController;
 use App\Http\Controllers\Api\V1\PassengerBookingController;
+use App\Http\Controllers\Api\V1\PassengerProfileController;
 use App\Http\Controllers\Api\V1\PassengerSosController;
 use App\Http\Controllers\Api\V1\PassengerTripController;
 use App\Http\Controllers\Api\V1\PaymentRecordController;
@@ -35,6 +37,15 @@ Route::prefix('v1')->group(function (): void {
 
     Route::post('/auth/otp/request', [OtpAuthController::class, 'requestOtp']);
     Route::post('/auth/otp/verify', [OtpAuthController::class, 'verify']);
+
+    Route::post('/passenger/register', [PassengerAuthController::class, 'register']);
+    Route::post('/passenger/verify-phone', [PassengerAuthController::class, 'verifyPhone']);
+    Route::post('/passenger/login', [PassengerAuthController::class, 'login']);
+
+    Route::middleware(['auth:sanctum', 'passenger.verified'])->group(function (): void {
+        Route::get('/passenger/me/profile', [PassengerProfileController::class, 'show']);
+        Route::post('/passenger/me/profile', [PassengerProfileController::class, 'upsert']);
+    });
 
     Route::middleware(['auth:sanctum', 'passenger.booking', 'idempotent'])->post('/bookings', [PassengerBookingController::class, 'store']);
 

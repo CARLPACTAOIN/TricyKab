@@ -148,6 +148,40 @@ it('returns success for active seeded driver', function () {
         ->and($response->json('data.scopes'))->toContain('booking:read:self');
 });
 
+it('verifies the correct otp when multiple active challenges exist for same phone', function () {
+    $this->seed(\Database\Seeders\DatabaseSeeder::class);
+
+    $sender = bindCapturingOtpSender();
+    $phone = '+639171100000';
+
+    // Create a PASSENGER OTP challenge first (remains unconsumed).
+    $this->postJson('/api/v1/auth/otp/request', [
+        'phone_number' => $phone,
+        'role_hint' => 'PASSENGER',
+    ])->assertOk();
+    $passengerCode = $sender->lastCode;
+
+    // Then create a DRIVER OTP challenge.
+    $this->postJson('/api/v1/auth/otp/request', [
+        'phone_number' => $phone,
+        'role_hint' => 'DRIVER',
+    ])->assertOk();
+    $driverCode = $sender->lastCode;
+
+    expect($passengerCode)->not->toBeNull()
+        ->and($driverCode)->not->toBeNull()
+        ->and($passengerCode)->not->toBe($driverCode);
+
+    // Verify using the DRIVER code should succeed and return DRIVER payload.
+    $verify = $this->postJson('/api/v1/auth/otp/verify', [
+        'phone_number' => $phone,
+        'otp_code' => $driverCode,
+    ]);
+
+    $verify->assertOk();
+    $verify->assertJsonPath('data.user.role', 'DRIVER');
+});
+
 it('returns 429 after five otp requests in one hour when cooldown bypassed', function () {
     bindCapturingOtpSender();
 
