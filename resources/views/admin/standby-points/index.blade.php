@@ -15,11 +15,22 @@
             <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Standby Points</h1>
             <p class="text-slate-500 mt-1">LGU/TODA-approved waiting areas and geofence management.</p>
         </div>
-        <button type="button" class="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-all shadow-md cursor-not-allowed opacity-80" disabled>
+        <a href="{{ route('admin.standby-points.create') }}" class="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-all shadow-md">
             <span class="material-icons-outlined">add</span>
             Add Standby Point
-        </button>
+        </a>
     </div>
+
+    @if(session('success'))
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if($errors->any())
+        <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700">
+            {{ $errors->first() }}
+        </div>
+    @endif
 
     <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
         <div class="flex items-center justify-between mb-4">
@@ -102,8 +113,26 @@
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button type="button" class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md text-slate-400 hover:text-amber-600 transition-colors cursor-not-allowed" disabled><span class="material-icons-outlined text-xl">edit</span></button>
-                                    <button type="button" class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md text-slate-400 hover:text-red-600 transition-colors cursor-not-allowed" disabled><span class="material-icons-outlined text-xl">delete_outline</span></button>
+                                    <a
+                                        href="{{ route('admin.standby-points.edit', $point) }}"
+                                        class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md text-slate-400 hover:text-amber-600 transition-colors"
+                                        aria-label="Edit standby point"
+                                        title="Edit"
+                                    >
+                                        <span class="material-icons-outlined text-xl">edit</span>
+                                    </a>
+                                    <form method="POST" action="{{ route('admin.standby-points.destroy', $point) }}" onsubmit="return confirm('Delete standby point \"{{ addslashes($point->name) }}\"? This cannot be undone.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button
+                                            type="submit"
+                                            class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md text-slate-400 hover:text-red-600 transition-colors"
+                                            aria-label="Delete standby point"
+                                            title="Delete"
+                                        >
+                                            <span class="material-icons-outlined text-xl">delete_outline</span>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>

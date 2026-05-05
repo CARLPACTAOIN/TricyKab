@@ -30,8 +30,8 @@
             <span class="material-icons-outlined mr-3 {{ request()->routeIs('fares.*') ? '' : 'text-slate-400 group-hover:text-primary' }}">payments</span>
             <span class="font-medium">Fare Rules</span>
         </a>
-        <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('admin.standby-points') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('admin.standby-points') }}">
-            <span class="material-icons-outlined mr-3 {{ request()->routeIs('admin.standby-points') ? '' : 'text-slate-400 group-hover:text-primary' }}">place</span>
+        <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('admin.standby-points*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('admin.standby-points') }}">
+            <span class="material-icons-outlined mr-3 {{ request()->routeIs('admin.standby-points*') ? '' : 'text-slate-400 group-hover:text-primary' }}">place</span>
             <span class="font-medium">Standby Points</span>
         </a>
         <a class="flex items-center px-4 py-3 rounded-lg transition-colors group {{ request()->routeIs('admin.disputes') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary' }}" href="{{ route('admin.disputes') }}">

@@ -101,6 +101,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
     // Standby Points
     Route::get('standby-points', [StandbyPointController::class, 'index'])->name('admin.standby-points');
+    Route::get('standby-points/create', [StandbyPointController::class, 'create'])->name('admin.standby-points.create');
+    Route::post('standby-points', [StandbyPointController::class, 'store'])->name('admin.standby-points.store');
+    Route::get('standby-points/{standbyPoint}/edit', [StandbyPointController::class, 'edit'])->name('admin.standby-points.edit');
+    Route::put('standby-points/{standbyPoint}', [StandbyPointController::class, 'update'])->name('admin.standby-points.update');
+    Route::delete('standby-points/{standbyPoint}', [StandbyPointController::class, 'destroy'])->name('admin.standby-points.destroy');
 
     // Disputes
     Route::get('disputes', [DisputeController::class, 'index'])->name('admin.disputes');

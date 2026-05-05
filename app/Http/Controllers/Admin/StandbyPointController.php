@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Barangay;
 use App\Models\StandbyPoint;
 use App\Models\Toda;
 use Illuminate\Http\Request;
@@ -52,6 +53,71 @@ class StandbyPointController extends Controller
                 ])->values()->all(),
             ],
             'activePointCount' => $standbyPoints->where('status', 'ACTIVE')->count(),
+        ]);
+    }
+
+    public function create()
+    {
+        return view('admin.standby-points.create', [
+            'todas' => Toda::query()->orderBy('name')->get(),
+            'barangays' => Barangay::query()->orderBy('name')->get(),
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $data = $this->validatedData($request);
+
+        StandbyPoint::create($data);
+
+        return redirect()
+            ->route('admin.standby-points')
+            ->with('success', 'Standby point created.');
+    }
+
+    public function edit(StandbyPoint $standbyPoint)
+    {
+        return view('admin.standby-points.edit', [
+            'standbyPoint' => $standbyPoint->load(['toda', 'barangay']),
+            'todas' => Toda::query()->orderBy('name')->get(),
+            'barangays' => Barangay::query()->orderBy('name')->get(),
+        ]);
+    }
+
+    public function update(Request $request, StandbyPoint $standbyPoint)
+    {
+        $data = $this->validatedData($request);
+
+        $standbyPoint->update($data);
+
+        return redirect()
+            ->route('admin.standby-points')
+            ->with('success', 'Standby point updated.');
+    }
+
+    public function destroy(StandbyPoint $standbyPoint)
+    {
+        $standbyPoint->delete();
+
+        return redirect()
+            ->route('admin.standby-points')
+            ->with('success', 'Standby point deleted.');
+    }
+
+    private function validatedData(Request $request): array
+    {
+        return $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'toda_id' => ['nullable', 'integer', 'exists:todas,id'],
+            'barangay_id' => ['nullable', 'integer', 'exists:barangays,id'],
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'radius_meters' => ['required', 'integer', 'min:1', 'max:2000'],
+            'priority_weight' => ['required', 'numeric', 'min:0', 'max:100'],
+            'status' => ['required', 'string', 'in:ACTIVE,INACTIVE'],
+        ], [
+            'toda_id.exists' => 'Selected TODA does not exist.',
+            'barangay_id.exists' => 'Selected barangay does not exist.',
         ]);
     }
 }

@@ -110,8 +110,10 @@
                 <ol class="space-y-2 text-sm">
                     <li><span id="step-searching" class="font-semibold text-slate-500">1. Searching Driver</span></li>
                     <li><span id="step-assigned" class="font-semibold text-slate-500">2. Driver Assigned</span></li>
-                    <li><span id="step-progress" class="font-semibold text-slate-500">3. Trip in Progress</span></li>
-                    <li><span id="step-complete" class="font-semibold text-slate-500">4. Completed</span></li>
+                    <li><span id="step-ontheway" class="font-semibold text-slate-500">3. Driver On the Way</span></li>
+                    <li><span id="step-arrived" class="font-semibold text-slate-500">4. Driver Arrived</span></li>
+                    <li><span id="step-progress" class="font-semibold text-slate-500">5. Trip in Progress</span></li>
+                    <li><span id="step-complete" class="font-semibold text-slate-500">6. Completed</span></li>
                 </ol>
                 <div class="mt-4 flex gap-2">
                     <button id="startTripBtn" class="hidden flex-1 rounded-lg bg-secondary px-3 py-2 text-xs font-bold text-white hover:bg-secondary/90">Start Trip</button>
@@ -150,12 +152,14 @@
 
     const stepSearching = document.getElementById('step-searching');
     const stepAssigned = document.getElementById('step-assigned');
+    const stepOnTheWay = document.getElementById('step-ontheway');
+    const stepArrived = document.getElementById('step-arrived');
     const stepProgress = document.getElementById('step-progress');
     const stepComplete = document.getElementById('step-complete');
 
     const setActiveStep = (el) => {
-        [stepSearching, stepAssigned, stepProgress, stepComplete].forEach((s) => {
-            s.className = 'font-semibold text-slate-500';
+        [stepSearching, stepAssigned, stepOnTheWay, stepArrived, stepProgress, stepComplete].forEach((s) => {
+            if (s) s.className = 'font-semibold text-slate-500';
         });
         if (el) el.className = 'font-bold text-primary';
     };
@@ -199,8 +203,18 @@
             case 'DRIVER_ASSIGNED':
                 statusBadge.classList.add('bg-blue-100', 'text-blue-700');
                 driverMarker.classList.remove('hidden');
-                startTripBtn.classList.remove('hidden');
                 setActiveStep(stepAssigned);
+                break;
+            case 'DRIVER_ON_THE_WAY':
+                statusBadge.classList.add('bg-indigo-100', 'text-indigo-700');
+                driverMarker.classList.remove('hidden');
+                setActiveStep(stepOnTheWay);
+                break;
+            case 'DRIVER_ARRIVED':
+                statusBadge.classList.add('bg-emerald-100', 'text-emerald-700');
+                driverMarker.classList.remove('hidden');
+                startTripBtn.classList.remove('hidden');
+                setActiveStep(stepArrived);
                 break;
             case 'TRIP_IN_PROGRESS':
                 statusBadge.classList.add('bg-sky-100', 'text-sky-700');
@@ -238,7 +252,9 @@
 
     const mapApiStatusToUi = (status) => {
         if (status === 'SEARCHING_DRIVER' || status === 'CREATED') return 'SEARCHING_DRIVER';
-        if (['DRIVER_ASSIGNED', 'DRIVER_ON_THE_WAY', 'DRIVER_ARRIVED'].includes(status)) return 'DRIVER_ASSIGNED';
+        if (status === 'DRIVER_ASSIGNED') return 'DRIVER_ASSIGNED';
+        if (status === 'DRIVER_ON_THE_WAY') return 'DRIVER_ON_THE_WAY';
+        if (status === 'DRIVER_ARRIVED') return 'DRIVER_ARRIVED';
         if (status === 'TRIP_IN_PROGRESS') return 'TRIP_IN_PROGRESS';
         if (status === 'COMPLETED') return 'COMPLETED';
         return 'IDLE';
