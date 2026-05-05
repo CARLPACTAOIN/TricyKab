@@ -32,6 +32,7 @@ class User extends Authenticatable
         'emergency_contact_name',
         'emergency_contact_phone',
         'profile_photo_url',
+        'toda_id',
     ];
 
     /**
@@ -65,6 +66,16 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    public function isLguAdmin(): bool
+    {
+        return $this->isAdmin() && is_null($this->toda_id);
+    }
+
+    public function isTodaAdmin(): bool
+    {
+        return $this->isAdmin() && !is_null($this->toda_id);
+    }
+
     public function isDriver(): bool
     {
         return $this->role === 'driver';
@@ -85,5 +96,10 @@ class User extends Authenticatable
     public function driverProfile()
     {
         return $this->hasOne(Driver::class);
+    }
+
+    public function toda()
+    {
+        return $this->belongsTo(Toda::class);
     }
 }

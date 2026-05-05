@@ -85,46 +85,51 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
     Route::get('/search', [\App\Http\Controllers\Admin\SearchController::class, 'index'])->name('admin.search');
 
-    // Fleet Management
-    Route::resource('todas', \App\Http\Controllers\Admin\TodaController::class);
+    // Shared Routes (accessible to all admin roles; TODA scoping enforced in controllers)
     Route::resource('tricycles', \App\Http\Controllers\Admin\TricycleController::class);
     Route::resource('drivers', \App\Http\Controllers\Admin\DriverController::class);
-
-    // Fare Management
-    Route::get('fares', [\App\Http\Controllers\Admin\FareController::class, 'index'])->name('fares.index');
-    Route::post('fares', [\App\Http\Controllers\Admin\FareController::class, 'store'])->name('fares.store');
 
     // Bookings & Trips
     Route::get('bookings', [BookingController::class, 'index'])->name('admin.bookings');
     Route::get('bookings-export', [BookingController::class, 'export'])->name('admin.bookings.export');
     Route::get('bookings/{reference}', [BookingController::class, 'show'])->name('admin.bookings.show');
 
-    // Standby Points
-    Route::get('standby-points', [StandbyPointController::class, 'index'])->name('admin.standby-points');
-    Route::get('standby-points/create', [StandbyPointController::class, 'create'])->name('admin.standby-points.create');
-    Route::post('standby-points', [StandbyPointController::class, 'store'])->name('admin.standby-points.store');
-    Route::get('standby-points/{standbyPoint}/edit', [StandbyPointController::class, 'edit'])->name('admin.standby-points.edit');
-    Route::put('standby-points/{standbyPoint}', [StandbyPointController::class, 'update'])->name('admin.standby-points.update');
-    Route::delete('standby-points/{standbyPoint}', [StandbyPointController::class, 'destroy'])->name('admin.standby-points.destroy');
-
-    // Disputes
-    Route::get('disputes', [DisputeController::class, 'index'])->name('admin.disputes');
-    Route::patch('disputes/{dispute}', [DisputeController::class, 'update'])->name('admin.disputes.update');
-    Route::patch('disputes', [DisputeController::class, 'bulkUpdate'])->name('admin.disputes.bulk-update');
-    Route::get('disputes-export', [DisputeController::class, 'export'])->name('admin.disputes.export');
-
-    // SOS Alerts
-    Route::get('sos-alerts', [SosAlertController::class, 'index'])->name('admin.sos');
-    Route::patch('sos-alerts/{sosAlert}/status', [SosAlertController::class, 'updateStatus'])->name('admin.sos.update-status');
-    Route::patch('sos-alerts/status', [SosAlertController::class, 'bulkUpdateStatus'])->name('admin.sos.bulk-update-status');
-    Route::get('sos-alerts-export', [SosAlertController::class, 'export'])->name('admin.sos.export');
-
     // Analytics
     Route::get('analytics', [AnalyticsController::class, 'index'])->name('admin.analytics');
 
-    // Audit Logs
-    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs');
-    Route::get('audit-logs-export', [AuditLogController::class, 'export'])->name('admin.audit-logs.export');
+    // LGU-Only Routes
+    Route::middleware('lgu.only')->group(function () {
+        // Fleet Management (TODAs)
+        Route::resource('todas', \App\Http\Controllers\Admin\TodaController::class);
+
+        // Fare Management
+        Route::get('fares', [\App\Http\Controllers\Admin\FareController::class, 'index'])->name('fares.index');
+        Route::post('fares', [\App\Http\Controllers\Admin\FareController::class, 'store'])->name('fares.store');
+
+        // Standby Points
+        Route::get('standby-points', [StandbyPointController::class, 'index'])->name('admin.standby-points');
+        Route::get('standby-points/create', [StandbyPointController::class, 'create'])->name('admin.standby-points.create');
+        Route::post('standby-points', [StandbyPointController::class, 'store'])->name('admin.standby-points.store');
+        Route::get('standby-points/{standbyPoint}/edit', [StandbyPointController::class, 'edit'])->name('admin.standby-points.edit');
+        Route::put('standby-points/{standbyPoint}', [StandbyPointController::class, 'update'])->name('admin.standby-points.update');
+        Route::delete('standby-points/{standbyPoint}', [StandbyPointController::class, 'destroy'])->name('admin.standby-points.destroy');
+
+        // Disputes
+        Route::get('disputes', [DisputeController::class, 'index'])->name('admin.disputes');
+        Route::patch('disputes/{dispute}', [DisputeController::class, 'update'])->name('admin.disputes.update');
+        Route::patch('disputes', [DisputeController::class, 'bulkUpdate'])->name('admin.disputes.bulk-update');
+        Route::get('disputes-export', [DisputeController::class, 'export'])->name('admin.disputes.export');
+
+        // SOS Alerts
+        Route::get('sos-alerts', [SosAlertController::class, 'index'])->name('admin.sos');
+        Route::patch('sos-alerts/{sosAlert}/status', [SosAlertController::class, 'updateStatus'])->name('admin.sos.update-status');
+        Route::patch('sos-alerts/status', [SosAlertController::class, 'bulkUpdateStatus'])->name('admin.sos.bulk-update-status');
+        Route::get('sos-alerts-export', [SosAlertController::class, 'export'])->name('admin.sos.export');
+
+        // Audit Logs
+        Route::get('audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs');
+        Route::get('audit-logs-export', [AuditLogController::class, 'export'])->name('admin.audit-logs.export');
+    });
 
     // Dev tools (visible only when APP_DEBUG is true)
     Route::get('dev/otp', [DevOtpController::class, 'index'])->name('admin.dev.otp');

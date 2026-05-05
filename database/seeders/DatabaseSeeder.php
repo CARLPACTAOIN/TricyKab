@@ -439,7 +439,10 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
+        $this->call(TodaAdminSeeder::class);
+        
         $this->command->info('✅ Database seeded with Kabacan sample data!');
         $this->command->info('   Admin: admin@tricykab.test / password');
+        $this->command->info('   TODA Admins: admin_poblaciontoda@tricykab.local / password (etc)');
     }
 }

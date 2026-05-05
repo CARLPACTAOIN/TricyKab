@@ -41,6 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'passenger.receipt.read' => \App\Http\Middleware\EnsurePassengerCanReadReceipt::class,
             'passenger.sos' => \App\Http\Middleware\EnsurePassengerCanCreateSos::class,
             'passenger.verified' => \App\Http\Middleware\EnsurePassengerAccountVerified::class,
+            'lgu.only'           => \App\Http\Middleware\LguAdminOnly::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

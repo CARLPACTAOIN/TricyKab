@@ -96,6 +96,7 @@
                 </select>
                 <span class="material-icons-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
             </div>
+            @if(auth()->user()->isLguAdmin())
             <div class="relative">
                 <select name="toda_id" class="pl-4 pr-10 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm appearance-none min-w-[180px]">
                     <option value="">All TODAs</option>
@@ -105,6 +106,7 @@
                 </select>
                 <span class="material-icons-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
             </div>
+            @endif
             <div class="relative">
                 <select name="date_scope" class="pl-4 pr-10 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm appearance-none min-w-[140px]">
                     <option value="today" @selected($selectedDateScope === 'today')>Today</option>
