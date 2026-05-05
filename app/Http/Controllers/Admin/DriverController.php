@@ -5,10 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Dispute;
+use App\Models\User;
+use App\Support\PhoneNormalizer;
 use Illuminate\Http\Request;
 use App\Models\Driver;
 use App\Models\Toda;
 use App\Models\Tricycle;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DriverController extends Controller
 {
@@ -62,12 +66,30 @@ class DriverController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'license_number' => 'required|string|max:255|unique:drivers,license_number',
-            'contact_number' => 'nullable|string|max:255',
+            'contact_number' => 'required|string|max:255',
             'address' => 'nullable|string|max:255',
             'toda_id' => 'nullable|exists:todas,id',
             'tricycle_id' => 'nullable|exists:tricycles,id',
             'status' => 'required|in:active,inactive',
         ]);
+
+        $normalizedPhone = PhoneNormalizer::normalize($validated['contact_number']);
+        if ($normalizedPhone === null) {
+            return back()->withErrors([
+                'contact_number' => 'Invalid phone number. Use a Philippine mobile number like 0917XXXXXXX or +63917XXXXXXX.',
+            ])->withInput();
+        }
+
+        // Ensure the phone isn't already bound to another driver user.
+        $existingDriverUser = User::query()
+            ->where('role', 'driver')
+            ->where('phone', $normalizedPhone)
+            ->first();
+        if ($existingDriverUser !== null) {
+            return back()->withErrors([
+                'contact_number' => 'This phone number is already registered to another driver account.',
+            ])->withInput();
+        }
 
         if (! empty($validated['tricycle_id'])) {
             $isValidTricycle = Tricycle::query()
@@ -82,7 +104,19 @@ class DriverController extends Controller
             }
         }
 
-        Driver::create($validated);
+        $user = User::query()->create([
+            'name' => trim($validated['first_name'].' '.$validated['last_name']),
+            'email' => 'driver_'.Str::lower(Str::random(16)).'@tricykab.local',
+            'password' => Hash::make(Str::random(32)),
+            'role' => 'driver',
+            'phone' => $normalizedPhone,
+            'status' => 'ACTIVE',
+        ]);
+
+        $validated['user_id'] = $user->id;
+        $validated['contact_number'] = $normalizedPhone;
+
+        Driver::query()->create($validated);
 
         return redirect()->route('drivers.index')->with('success', 'Driver created successfully.');
     }
@@ -181,12 +215,19 @@ class DriverController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'license_number' => 'required|string|max:255|unique:drivers,license_number,' . $id,
-            'contact_number' => 'nullable|string|max:255',
+            'contact_number' => 'required|string|max:255',
             'address' => 'nullable|string|max:255',
             'toda_id' => 'nullable|exists:todas,id',
             'tricycle_id' => 'nullable|exists:tricycles,id',
             'status' => 'required|in:active,inactive',
         ]);
+
+        $normalizedPhone = PhoneNormalizer::normalize($validated['contact_number']);
+        if ($normalizedPhone === null) {
+            return back()->withErrors([
+                'contact_number' => 'Invalid phone number. Use a Philippine mobile number like 0917XXXXXXX or +63917XXXXXXX.',
+            ])->withInput();
+        }
 
         if (! empty($validated['tricycle_id'])) {
             $isValidTricycle = Tricycle::query()
@@ -202,6 +243,38 @@ class DriverController extends Controller
         }
 
         $driver = Driver::findOrFail($id);
+
+        // Ensure driver has a linked user row (OTP login requires it).
+        $user = $driver->user_id ? User::query()->find($driver->user_id) : null;
+        if ($user === null) {
+            $user = User::query()->create([
+                'name' => trim($validated['first_name'].' '.$validated['last_name']),
+                'email' => 'driver_'.Str::lower(Str::random(16)).'@tricykab.local',
+                'password' => Hash::make(Str::random(32)),
+                'role' => 'driver',
+                'phone' => $normalizedPhone,
+                'status' => 'ACTIVE',
+            ]);
+            $driver->user_id = $user->id;
+        }
+
+        // Prevent phone collision with other driver users.
+        $phoneTaken = User::query()
+            ->where('role', 'driver')
+            ->where('phone', $normalizedPhone)
+            ->where('id', '!=', $user->id)
+            ->exists();
+        if ($phoneTaken) {
+            return back()->withErrors([
+                'contact_number' => 'This phone number is already registered to another driver account.',
+            ])->withInput();
+        }
+
+        $user->phone = $normalizedPhone;
+        $user->name = trim($validated['first_name'].' '.$validated['last_name']);
+        $user->save();
+
+        $validated['contact_number'] = $normalizedPhone;
         $driver->update($validated);
 
         return redirect()->route('drivers.index')->with('success', 'Driver updated successfully.');
