@@ -342,6 +342,133 @@ class TripService
     }
 
     /**
+     * Passenger confirms they are at the pickup point — mirrors driver “arrived” for booking status
+     * when the trip has not yet started, so either party can satisfy the pickup-ready milestone.
+     *
+     * @return array{booking: Booking}|array{error: string, message: string, http: int}
+     */
+    public function passengerAckPickup(User $passengerUser, Booking $booking): array
+    {
+        if ((int) $booking->passenger_id !== (int) $passengerUser->id) {
+            return ['error' => 'FORBIDDEN', 'message' => 'Booking does not belong to this passenger.', 'http' => 403];
+        }
+
+        return DB::transaction(function () use ($passengerUser, $booking) {
+            $booking = Booking::query()->lockForUpdate()->findOrFail($booking->id);
+            $trip = Trip::query()->lockForUpdate()->where('booking_id', $booking->id)->first();
+
+            if ($trip === null) {
+                return [
+                    'error' => 'INVALID_STATE',
+                    'message' => 'No trip exists for this booking.',
+                    'http' => 422,
+                ];
+            }
+
+            if ($trip->trip_status !== Trip::STATUS_PRE_START) {
+                return [
+                    'error' => 'INVALID_STATE',
+                    'message' => 'Trip has already started or ended.',
+                    'http' => 422,
+                ];
+            }
+
+            if (! in_array($booking->status, [
+                Booking::STATUS_DRIVER_ASSIGNED,
+                Booking::STATUS_DRIVER_ON_THE_WAY,
+                Booking::STATUS_DRIVER_ARRIVED,
+            ], true)) {
+                return [
+                    'error' => 'INVALID_STATE',
+                    'message' => 'Pickup acknowledgement is not available for this booking state.',
+                    'http' => 422,
+                ];
+            }
+
+            $previousBookingStatus = $booking->status;
+
+            if (in_array($booking->status, [
+                Booking::STATUS_DRIVER_ASSIGNED,
+                Booking::STATUS_DRIVER_ON_THE_WAY,
+            ], true)) {
+                $booking->status = Booking::STATUS_DRIVER_ARRIVED;
+            }
+
+            $booking->passenger_ack_pickup_at = now();
+            $booking->save();
+
+            $this->scheduleFirebaseProjection($trip->id);
+
+            $this->audit->log(
+                actor: $passengerUser,
+                objectType: 'BOOKING',
+                objectId: $booking->id,
+                action: 'BOOKING_PASSENGER_ACK_PICKUP',
+                previous: ['status' => $previousBookingStatus],
+                next: ['status' => $booking->status],
+            );
+
+            return ['booking' => $booking->fresh()];
+        });
+    }
+
+    /**
+     * Passenger confirms arrival at their destination during an active trip (UI signal; does not end the trip).
+     *
+     * @return array{booking: Booking}|array{error: string, message: string, http: int}
+     */
+    public function passengerAckDropoff(User $passengerUser, Booking $booking): array
+    {
+        if ((int) $booking->passenger_id !== (int) $passengerUser->id) {
+            return ['error' => 'FORBIDDEN', 'message' => 'Booking does not belong to this passenger.', 'http' => 403];
+        }
+
+        return DB::transaction(function () use ($passengerUser, $booking) {
+            $booking = Booking::query()->lockForUpdate()->findOrFail($booking->id);
+            $trip = Trip::query()->lockForUpdate()->where('booking_id', $booking->id)->first();
+
+            if ($trip === null) {
+                return [
+                    'error' => 'INVALID_STATE',
+                    'message' => 'No trip exists for this booking.',
+                    'http' => 422,
+                ];
+            }
+
+            if ($booking->status !== Booking::STATUS_TRIP_IN_PROGRESS) {
+                return [
+                    'error' => 'INVALID_STATE',
+                    'message' => 'Trip is not in progress.',
+                    'http' => 422,
+                ];
+            }
+
+            if ($trip->trip_status !== Trip::STATUS_IN_PROGRESS) {
+                return [
+                    'error' => 'INVALID_STATE',
+                    'message' => 'Trip is not active.',
+                    'http' => 422,
+                ];
+            }
+
+            $booking->passenger_ack_dropoff_at = now();
+            $booking->save();
+
+            $this->scheduleFirebaseProjection($trip->id);
+
+            $this->audit->log(
+                actor: $passengerUser,
+                objectType: 'BOOKING',
+                objectId: $booking->id,
+                action: 'BOOKING_PASSENGER_ACK_DROPOFF',
+                next: ['passenger_ack_dropoff_at' => $booking->passenger_ack_dropoff_at?->toIso8601String()],
+            );
+
+            return ['booking' => $booking->fresh()];
+        });
+    }
+
+    /**
      * Mark trip aborted when booking is cancelled mid-trip.
      */
     public function abortTripIfExists(Booking $booking): void

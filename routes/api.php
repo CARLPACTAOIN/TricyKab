@@ -102,6 +102,9 @@ Route::prefix('v1')->group(function (): void {
     Route::middleware(['auth:sanctum', 'passenger.booking.read', 'passenger.trip.read'])
         ->get('/bookings/{booking}/trip-tracking', [PassengerTripController::class, 'tracking']);
 
+    Route::middleware(['auth:sanctum', 'passenger.booking.read', 'passenger.trip.read', 'idempotent'])
+        ->post('/bookings/{booking}/passenger-ack', [PassengerTripController::class, 'passengerAck']);
+
     Route::middleware(['auth:sanctum', 'passenger.booking.read', 'passenger.receipt.read'])
         ->get('/bookings/{booking}/receipt', [PassengerTripController::class, 'receipt']);
 

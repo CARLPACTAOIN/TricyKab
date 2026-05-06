@@ -29,6 +29,8 @@ class Booking extends Model
         'completed_at',
         'cancelled_at',
         'cancellation_reason',
+        'passenger_ack_pickup_at',
+        'passenger_ack_dropoff_at',
     ];
 
     protected $casts = [
@@ -42,6 +44,8 @@ class Booking extends Model
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'passenger_ack_pickup_at' => 'datetime',
+        'passenger_ack_dropoff_at' => 'datetime',
     ];
 
     protected static function booted(): void
