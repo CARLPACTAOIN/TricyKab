@@ -71,18 +71,27 @@ class TripService
             $trip = Trip::query()->lockForUpdate()->findOrFail($trip->id);
             $booking = Booking::query()->lockForUpdate()->findOrFail($trip->booking_id);
 
-            if (! in_array($booking->status, [Booking::STATUS_DRIVER_ASSIGNED, Booking::STATUS_DRIVER_ON_THE_WAY], true)) {
-                return [
-                    'error' => 'INVALID_STATE',
-                    'message' => 'Booking is not awaiting pickup arrival.',
-                    'http' => 422,
-                ];
-            }
-
             if ($trip->trip_status !== Trip::STATUS_PRE_START) {
                 return [
                     'error' => 'INVALID_STATE',
                     'message' => 'Trip is not in PRE_START state.',
+                    'http' => 422,
+                ];
+            }
+
+            // Passenger may have confirmed pickup first (`passenger_ack_pickup_at`) which already
+            // sets DRIVER_ARRIVED. Treat driver "arrive" as idempotent: record GPS only.
+            if ($booking->status === Booking::STATUS_DRIVER_ARRIVED) {
+                $this->appendLocation($trip, $driver, $location);
+                $this->scheduleFirebaseProjection($trip->id);
+
+                return ['trip' => $trip->fresh()];
+            }
+
+            if (! in_array($booking->status, [Booking::STATUS_DRIVER_ASSIGNED, Booking::STATUS_DRIVER_ON_THE_WAY], true)) {
+                return [
+                    'error' => 'INVALID_STATE',
+                    'message' => 'Booking is not awaiting pickup arrival.',
                     'http' => 422,
                 ];
             }

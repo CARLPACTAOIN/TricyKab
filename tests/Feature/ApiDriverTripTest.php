@@ -82,6 +82,33 @@ it('runs driver trip lifecycle after accept', function () {
     $pay->assertJsonPath('data.receipt.receipt_number', fn ($v) => is_string($v) && str_starts_with($v, 'RCT-'));
 });
 
+it('allows driver mark arrived after passenger already confirmed pickup', function () {
+    $passenger = User::factory()->create(['role' => 'passenger', 'status' => 'ACTIVE']);
+    Sanctum::actingAs($passenger, ['booking:create']);
+    $bid = $this->postJson('/api/v1/bookings', tripSampleBookingPayload())->json('data.booking.id');
+
+    $driverUser = User::query()->where('email', 'driver_0@tricykab.local')->firstOrFail();
+    Sanctum::actingAs($driverUser, driverTripScopes());
+    $offer = $this->getJson('/api/v1/drivers/me/dispatch-offers')->json('data.offers.0');
+    $accept = $this->postJson("/api/v1/drivers/bookings/{$bid}/accept", [
+        'dispatch_attempt_id' => $offer['dispatch_attempt_id'],
+        'candidate_id' => $offer['candidate_id'],
+    ]);
+    $accept->assertOk();
+    $tripId = $accept->json('data.trip_id');
+
+    Sanctum::actingAs($passenger, ['booking:read:self', 'trip:read:self']);
+    $this->postJson("/api/v1/bookings/{$bid}/passenger-ack", ['kind' => 'pickup'])
+        ->assertOk()
+        ->assertJsonPath('data.booking.status', Booking::STATUS_DRIVER_ARRIVED);
+
+    Sanctum::actingAs($driverUser, driverTripScopes());
+    $geo = ['latitude' => 7.1083, 'longitude' => 124.8295, 'accuracy_meters' => 5.0];
+    $this->postJson("/api/v1/drivers/trips/{$tripId}/arrive", $geo)->assertOk();
+
+    $this->postJson("/api/v1/drivers/trips/{$tripId}/start", $geo)->assertOk();
+});
+
 it('lets passengers read trip tracking and sos', function () {
     $passenger = User::factory()->create(['role' => 'passenger', 'status' => 'ACTIVE']);
     Sanctum::actingAs($passenger, ['booking:create']);
