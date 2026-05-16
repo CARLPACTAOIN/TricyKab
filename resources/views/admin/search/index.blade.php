@@ -15,6 +15,7 @@
     </div>
 @else
     <div class="space-y-6">
+        @if (auth()->user()->isLguAdmin())
         <!-- TODAs -->
         <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
@@ -37,6 +38,7 @@
                 @endforelse
             </div>
         </div>
+        @endif
 
         <!-- Drivers -->
         <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -57,6 +59,31 @@
                     </a>
                 @empty
                     <p class="text-slate-500 text-sm">No drivers found.</p>
+                @endforelse
+            </div>
+        </div>
+
+        <!-- Bookings -->
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <h2 class="font-semibold text-slate-900 dark:text-white">Bookings</h2>
+                @if ($bookings->isNotEmpty())
+                    <a href="{{ route('admin.bookings', ['search' => $q]) }}" class="text-primary text-sm font-medium hover:underline">View all</a>
+                @endif
+            </div>
+            <div class="p-6">
+                @forelse ($bookings as $booking)
+                    <a href="{{ route('admin.bookings.show', $booking->booking_reference) }}" class="flex items-center gap-3 py-3 border-b border-slate-100 dark:border-slate-700 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-lg px-2 -mx-2 transition-colors">
+                        <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                            <span class="material-icons-outlined">receipt_long</span>
+                        </div>
+                        <div>
+                            <p class="font-medium text-slate-900 dark:text-white">{{ $booking->booking_reference }}</p>
+                            <p class="text-sm text-slate-500">{{ str_replace('_', ' ', $booking->status) }} · {{ $booking->pickup_address ?? '—' }}</p>
+                        </div>
+                    </a>
+                @empty
+                    <p class="text-slate-500 text-sm">No bookings found.</p>
                 @endforelse
             </div>
         </div>

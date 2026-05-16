@@ -7,7 +7,7 @@
     <div>
         <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Recent OTPs</h1>
         <p class="text-slate-500 mt-1">
-            Pilot tooling for testers — plaintext codes are cached for {{ (int) ($cache_ttl_seconds / 60) }} minutes after each request.
+            Pilot tooling for testers — each OTP request caches its own code for {{ (int) ($cache_ttl_seconds / 60) }} minutes (per challenge ID, not per phone).
             Visible only when <code>APP_DEBUG=true</code>.
         </p>
     </div>

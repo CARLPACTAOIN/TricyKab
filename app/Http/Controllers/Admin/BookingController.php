@@ -4,13 +4,32 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Dispute;
 use App\Models\Toda;
+use App\Services\AuditLogger;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BookingController extends Controller
 {
+    private const ADMIN_OVERRIDEABLE_STATUSES = [
+        Booking::STATUS_CANCELLED_BY_PASSENGER,
+        Booking::STATUS_CANCELLED_BY_DRIVER,
+        Booking::STATUS_CANCELLED_NO_DRIVER,
+        Booking::STATUS_COMPLETED,
+        Booking::STATUS_NO_SHOW_PASSENGER,
+        Booking::STATUS_NO_SHOW_DRIVER,
+    ];
+
+    public function __construct(
+        private readonly AuditLogger $audit,
+    ) {}
+
+
     public function index(Request $request)
     {
         $search = trim((string) $request->input('search', ''));
@@ -270,5 +289,147 @@ class BookingController extends Controller
             'cancelled' => ['label' => 'Cancelled', 'statuses' => [Booking::STATUS_CANCELLED_BY_PASSENGER, Booking::STATUS_CANCELLED_BY_DRIVER, Booking::STATUS_CANCELLED_NO_DRIVER]],
             'no_show' => ['label' => 'No-Show', 'statuses' => [Booking::STATUS_NO_SHOW_PASSENGER, Booking::STATUS_NO_SHOW_DRIVER]],
         ];
+    }
+
+    /**
+     * PRD §6.5 — LGU admin overrides booking status with mandatory reason.
+     * Returns JSON; UI updates badge in-place without page reload.
+     */
+    public function override(Request $request, string $reference): JsonResponse
+    {
+        // Only LGU admins may perform status overrides
+        if (! $request->user()->isLguAdmin()) {
+            return response()->json([
+                'success' => false,
+                'error' => 'FORBIDDEN',
+                'message' => 'Only LGU administrators can override booking status.',
+            ], 403);
+        }
+
+        $request->validate([
+            'new_status' => ['required', 'string', Rule::in(self::ADMIN_OVERRIDEABLE_STATUSES)],
+            'reason' => ['required', 'string', 'min:5', 'max:500'],
+        ]);
+
+        $booking = Booking::query()->where('reference', $reference)->firstOrFail();
+
+        return DB::transaction(function () use ($request, $booking): JsonResponse {
+            $previous = $booking->toArray();
+            $previousStatus = $booking->status;
+            $newStatus = $request->input('new_status');
+
+            $booking->status = $newStatus;
+            if ($newStatus === Booking::STATUS_COMPLETED && $booking->completed_at === null) {
+                $booking->completed_at = now();
+            }
+            $booking->save();
+
+            $auditRow = $this->audit->logModelChange(
+                model: $booking,
+                action: 'ADMIN_BOOKING_STATUS_OVERRIDE',
+                previousAttributes: $previous,
+                newAttributes: $booking->fresh()->toArray(),
+                actor: $request->user(),
+                reason: $request->input('reason'),
+                request: $request,
+                targetFields: ['status'],
+            );
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'reference' => $booking->reference,
+                    'previous_status' => $previousStatus,
+                    'new_status' => $booking->status,
+                    'audit_log_id' => $auditRow?->id,
+                    'overridden_at' => now()->toIso8601String(),
+                ],
+            ]);
+        });
+    }
+
+    /**
+     * PRD §9.5 — Returns receipt payload JSON for in-page modal display.
+     */
+    public function receiptData(string $reference): JsonResponse
+    {
+        $booking = Booking::query()
+            ->with('receipt')
+            ->where('reference', $reference)
+            ->firstOrFail();
+
+        if ($booking->receipt === null) {
+            return response()->json([
+                'success' => false,
+                'error' => 'RECEIPT_NOT_FOUND',
+                'message' => 'No receipt has been generated for this booking yet.',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'booking_reference' => $booking->reference,
+                'receipt' => $booking->receipt->receipt_payload_json ?? $booking->receipt->toArray(),
+            ],
+        ]);
+    }
+
+    /**
+     * PRD §7.19 — Admin can file a dispute on behalf of parties.
+     */
+    public function openDispute(Request $request, string $reference): JsonResponse
+    {
+        $request->validate([
+            'dispute_type' => ['required', 'string', Rule::in(['FARE', 'NO_SHOW', 'GPS', 'CONDUCT', 'SAFETY', 'OTHER'])],
+            'description' => ['required', 'string', 'min:10', 'max:1000'],
+        ]);
+
+        $booking = Booking::query()->where('reference', $reference)->firstOrFail();
+
+        $existing = Dispute::query()
+            ->where('booking_id', $booking->id)
+            ->where('status', 'OPEN')
+            ->first();
+
+        if ($existing !== null) {
+            return response()->json([
+                'success' => false,
+                'error' => 'DISPUTE_ALREADY_OPEN',
+                'message' => 'An open dispute already exists for this booking.',
+                'dispute_id' => $existing->id,
+            ], 409);
+        }
+
+        $dispute = Dispute::query()->create([
+            'booking_id' => $booking->id,
+            'driver_id' => $booking->driver_id,
+            'reported_by_role' => 'ADMIN',
+            'reported_by_name' => $request->user()->name ?? 'Admin',
+            'dispute_type' => $request->input('dispute_type'),
+            'description' => $request->input('description'),
+            'status' => 'OPEN',
+        ]);
+
+        $this->audit->log(
+            actor: $request->user(),
+            objectType: 'DISPUTE',
+            objectId: $dispute->id,
+            action: 'DISPUTE_FILED_BY_ADMIN',
+            previous: null,
+            next: ['booking_id' => $booking->id, 'type' => $dispute->dispute_type],
+            reason: $request->input('dispute_type'),
+            ipAddress: $request->ip(),
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'dispute_id' => $dispute->id,
+                'booking_reference' => $booking->reference,
+                'dispute_type' => $dispute->dispute_type,
+                'status' => $dispute->status,
+            ],
+        ], 201);
     }
 }

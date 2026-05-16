@@ -40,22 +40,102 @@
             </h1>
         </div>
         <div class="flex items-center gap-3">
-            <button class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-slate-50 transition-colors cursor-not-allowed opacity-60" disabled>
+            <button id="btn-override-status"
+                    class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-slate-50 transition-colors">
                 <span class="material-icons-outlined text-base">admin_panel_settings</span>
                 Override Status
             </button>
-            <button class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-slate-50 transition-colors cursor-not-allowed opacity-70" disabled>
+            <button id="btn-open-dispute"
+                    class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-slate-50 transition-colors">
                 <span class="material-icons-outlined text-base">gavel</span>
                 Open Dispute
             </button>
-            <button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm cursor-not-allowed opacity-80" disabled>
+            <button id="btn-view-receipt"
+                    class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm hover:opacity-90 transition-opacity">
                 <span class="material-icons-outlined text-base">receipt</span>
                 View Receipt
             </button>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    {{-- ─── Override Status Modal ─── --}}
+    <div id="modal-override" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-1">Override Booking Status</h2>
+            <p class="text-sm text-slate-500 mb-4">LGU admin action — an audit log entry will be created.</p>
+            <div class="mb-4">
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">New Status</label>
+                <select id="override-status-select" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm">
+                    <option value="COMPLETED">COMPLETED</option>
+                    <option value="CANCELLED_BY_PASSENGER">CANCELLED_BY_PASSENGER</option>
+                    <option value="CANCELLED_BY_DRIVER">CANCELLED_BY_DRIVER</option>
+                    <option value="CANCELLED_NO_DRIVER">CANCELLED_NO_DRIVER</option>
+                    <option value="NO_SHOW_PASSENGER">NO_SHOW_PASSENGER</option>
+                    <option value="NO_SHOW_DRIVER">NO_SHOW_DRIVER</option>
+                </select>
+            </div>
+            <div class="mb-5">
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Reason <span class="text-rose-500">*</span></label>
+                <textarea id="override-reason" rows="3" placeholder="Provide a clear reason for this override (min 5 chars)…"
+                          class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm resize-none"></textarea>
+            </div>
+            <div id="override-error" class="hidden text-sm text-rose-600 mb-3"></div>
+            <div class="flex gap-3 justify-end">
+                <button onclick="AdminBookingDetail.closeModals()" class="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition-colors">Cancel</button>
+                <button id="override-submit" onclick="AdminBookingDetail.submitOverride()"
+                        class="px-4 py-2 rounded-lg text-sm font-semibold bg-amber-500 text-white hover:bg-amber-600 transition-colors">Confirm Override</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ─── Open Dispute Modal ─── --}}
+    <div id="modal-dispute" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-1">File a Dispute</h2>
+            <p class="text-sm text-slate-500 mb-4">Filed on behalf of the booking parties by Admin.</p>
+            <div class="mb-4">
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Dispute Type</label>
+                <select id="dispute-type-select" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm">
+                    <option value="FARE">FARE — Incorrect fare charged</option>
+                    <option value="NO_SHOW">NO_SHOW — Driver/passenger did not appear</option>
+                    <option value="GPS">GPS — Route or location issue</option>
+                    <option value="CONDUCT">CONDUCT — Behaviour concern</option>
+                    <option value="SAFETY">SAFETY — Safety incident</option>
+                    <option value="OTHER">OTHER</option>
+                </select>
+            </div>
+            <div class="mb-5">
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Description <span class="text-rose-500">*</span></label>
+                <textarea id="dispute-description" rows="4" placeholder="Describe the dispute in detail (min 10 chars)…"
+                          class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm resize-none"></textarea>
+            </div>
+            <div id="dispute-error" class="hidden text-sm text-rose-600 mb-3"></div>
+            <div class="flex gap-3 justify-end">
+                <button onclick="AdminBookingDetail.closeModals()" class="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 transition-colors">Cancel</button>
+                <button id="dispute-submit" onclick="AdminBookingDetail.submitDispute()"
+                        class="px-4 py-2 rounded-lg text-sm font-semibold bg-rose-600 text-white hover:bg-rose-700 transition-colors">File Dispute</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ─── View Receipt Modal ─── --}}
+    <div id="modal-receipt" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6 max-h-[80vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-slate-900 dark:text-white">Trip Receipt</h2>
+                <button onclick="AdminBookingDetail.closeModals()" class="text-slate-400 hover:text-slate-600">
+                    <span class="material-icons-outlined">close</span>
+                </button>
+            </div>
+            <div id="receipt-content" class="text-sm text-slate-700 dark:text-slate-300"></div>
+        </div>
+    </div>
+
+    {{-- ─── Toast Notification ─── --}}
+    <div id="admin-toast" class="hidden fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-xl text-sm font-semibold text-white transition-all duration-300"></div>
+
+</ReplacementContent>
+<parameter name="StartLine">42    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
             <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
                 <h3 class="font-bold text-slate-800 dark:text-white mb-6">Booking Lifecycle</h3>
@@ -273,3 +353,162 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+/**
+ * AdminBookingDetail — AJAX module for the three booking action modals.
+ * PRD §6.5 (override), §7.19 (dispute), §9.5 (receipt).
+ */
+const AdminBookingDetail = (() => {
+    const ref = '{{ $booking->reference }}';
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+
+    // ── Helpers ──────────────────────────────────────────────────────────
+    function show(id) { document.getElementById(id)?.classList.remove('hidden'); }
+    function hide(id) { document.getElementById(id)?.classList.add('hidden'); }
+
+    function toast(message, type = 'success') {
+        const el = document.getElementById('admin-toast');
+        el.textContent = message;
+        el.className = `fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-xl text-sm font-semibold text-white transition-all duration-300 ${
+            type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'
+        }`;
+        el.classList.remove('hidden');
+        setTimeout(() => el.classList.add('hidden'), 4000);
+    }
+
+    function setLoading(btnId, loading) {
+        const btn = document.getElementById(btnId);
+        if (btn) btn.disabled = loading;
+    }
+
+    // ── Override Status ───────────────────────────────────────────────────
+    async function submitOverride() {
+        const newStatus = document.getElementById('override-status-select').value;
+        const reason = document.getElementById('override-reason').value.trim();
+        const errEl = document.getElementById('override-error');
+
+        errEl.classList.add('hidden');
+        if (reason.length < 5) {
+            errEl.textContent = 'Reason must be at least 5 characters.';
+            errEl.classList.remove('hidden');
+            return;
+        }
+
+        setLoading('override-submit', true);
+        try {
+            const res = await fetch(`/admin/bookings/${ref}/override`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                body: JSON.stringify({ new_status: newStatus, reason }),
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                // Update status badge in-place
+                const badge = document.querySelector('h1 span.rounded-full');
+                if (badge) badge.textContent = data.data.new_status;
+                closeModals();
+                toast(`Status overridden → ${data.data.new_status}`);
+            } else {
+                errEl.textContent = data.message ?? 'Override failed.';
+                errEl.classList.remove('hidden');
+            }
+        } catch {
+            errEl.textContent = 'Network error. Please try again.';
+            errEl.classList.remove('hidden');
+        } finally {
+            setLoading('override-submit', false);
+        }
+    }
+
+    // ── Open Dispute ──────────────────────────────────────────────────────
+    async function submitDispute() {
+        const disputeType = document.getElementById('dispute-type-select').value;
+        const description = document.getElementById('dispute-description').value.trim();
+        const errEl = document.getElementById('dispute-error');
+
+        errEl.classList.add('hidden');
+        if (description.length < 10) {
+            errEl.textContent = 'Description must be at least 10 characters.';
+            errEl.classList.remove('hidden');
+            return;
+        }
+
+        setLoading('dispute-submit', true);
+        try {
+            const res = await fetch(`/admin/bookings/${ref}/dispute`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                body: JSON.stringify({ dispute_type: disputeType, description }),
+            });
+            const data = await res.json();
+
+            if (data.success || res.status === 201) {
+                closeModals();
+                toast(`Dispute #${data.data.dispute_id} filed successfully.`);
+            } else {
+                errEl.textContent = data.message ?? 'Failed to file dispute.';
+                errEl.classList.remove('hidden');
+            }
+        } catch {
+            errEl.textContent = 'Network error. Please try again.';
+            errEl.classList.remove('hidden');
+        } finally {
+            setLoading('dispute-submit', false);
+        }
+    }
+
+    // ── View Receipt ──────────────────────────────────────────────────────
+    async function openReceipt() {
+        const container = document.getElementById('receipt-content');
+        container.innerHTML = '<p class="text-slate-400 animate-pulse">Loading receipt…</p>';
+        show('modal-receipt');
+
+        try {
+            const res = await fetch(`/admin/bookings/${ref}/receipt-data`, {
+                headers: { 'Accept': 'application/json' },
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                const receipt = data.data.receipt;
+                const rows = Object.entries(typeof receipt === 'object' ? receipt : {}).map(([k, v]) =>
+                    `<div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
+                        <span class="text-slate-500 capitalize">${k.replace(/_/g,' ')}</span>
+                        <span class="font-medium">${v ?? '—'}</span>
+                    </div>`
+                ).join('');
+                container.innerHTML = rows || '<p class="text-slate-400">Receipt is empty.</p>';
+            } else {
+                container.innerHTML = `<p class="text-rose-500">${data.message ?? 'Receipt not available.'}</p>`;
+            }
+        } catch {
+            container.innerHTML = '<p class="text-rose-500">Network error. Please try again.</p>';
+        }
+    }
+
+    // ── Modal lifecycle ───────────────────────────────────────────────────
+    function closeModals() {
+        ['modal-override','modal-dispute','modal-receipt'].forEach(hide);
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('btn-override-status')?.addEventListener('click', () => show('modal-override'));
+        document.getElementById('btn-open-dispute')?.addEventListener('click', () => show('modal-dispute'));
+        document.getElementById('btn-view-receipt')?.addEventListener('click', openReceipt);
+
+        // Close on backdrop click
+        ['modal-override','modal-dispute','modal-receipt'].forEach(id => {
+            document.getElementById(id)?.addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) closeModals();
+            });
+        });
+    });
+
+    return { closeModals, submitOverride, submitDispute };
+})();
+</script>
+@endpush

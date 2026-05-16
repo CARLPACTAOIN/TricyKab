@@ -39,6 +39,41 @@ class SosAlertController extends Controller
         return view('admin.sos.index', compact('alerts', 'summary', 'status', 'search'));
     }
 
+    public function poll(Request $request)
+    {
+        $status = $request->string('status')->toString();
+        $search = trim((string) $request->input('search', ''));
+
+        $query = SosAlert::query()->with(['booking', 'passenger']);
+
+        if (in_array($status, ['OPEN', 'ACKNOWLEDGED', 'CLOSED'], true)) {
+            $query->where('status', $status);
+        }
+
+        if ($search !== '') {
+            $query->where(function ($subQuery) use ($search) {
+                $subQuery
+                    ->where('passenger_name', 'like', '%' . $search . '%')
+                    ->orWhere('location_note', 'like', '%' . $search . '%')
+                    ->orWhereHas('booking', fn ($bookingQuery) => $bookingQuery->where('booking_reference', 'like', '%' . $search . '%'));
+            });
+        }
+
+        $alerts = $query->latest()->paginate(10)->withQueryString();
+        $summary = [
+            'OPEN' => SosAlert::query()->where('status', 'OPEN')->count(),
+            'ACKNOWLEDGED' => SosAlert::query()->where('status', 'ACKNOWLEDGED')->count(),
+            'CLOSED' => SosAlert::query()->where('status', 'CLOSED')->count(),
+        ];
+        $latestId = SosAlert::query()->max('id') ?? 0;
+
+        return response()->json([
+            'html' => view('admin.sos.index', compact('alerts', 'summary', 'status', 'search'))->render(),
+            'latest_id' => $latestId,
+            'open_count' => $summary['OPEN'],
+        ]);
+    }
+
     public function updateStatus(Request $request, SosAlert $sosAlert)
     {
         $validated = $request->validate([
@@ -75,6 +110,10 @@ class SosAlertController extends Controller
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'SOS alert updated successfully.']);
+        }
 
         return redirect()->route('admin.sos')->with('success', 'SOS alert updated successfully.');
     }
@@ -119,6 +158,10 @@ class SosAlertController extends Controller
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
             ]);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Selected SOS alerts updated.']);
         }
 
         return redirect()->route('admin.sos')->with('success', 'Selected SOS alerts updated.');

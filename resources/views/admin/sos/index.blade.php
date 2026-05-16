@@ -22,7 +22,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-3 gap-4" id="sos-stats-container">
         <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <div class="flex items-center gap-2 mb-2">
                 <span class="material-icons-outlined text-red-500">warning</span>
@@ -84,7 +84,7 @@
                         <th class="px-6 py-4 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800" id="sos-table-body">
                     @forelse($alerts as $alert)
                         <tr>
                             <td class="px-6 py-4"><input type="checkbox" name="alert_ids[]" value="{{ $alert->id }}" form="bulkSosForm" class="sos-row rounded border-slate-300"></td>
@@ -126,11 +126,170 @@
 @endsection
 
 @section('scripts')
+<div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
 <script>
 document.getElementById('toggleAllSos')?.addEventListener('change', function (event) {
     document.querySelectorAll('.sos-row').forEach((el) => {
         el.checked = event.target.checked;
     });
 });
+
+const SosDashboard = (function() {
+    let latestId = parseInt('{{ $alerts->max("id") ?? 0 }}', 10);
+    const pollUrl = '{{ route("admin.sos.poll", request()->query()) }}';
+    const csrfToken = '{{ csrf_token() }}';
+
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        
+        const toast = document.createElement('div');
+        const isError = type === 'error';
+        const isAlert = type === 'alert';
+        
+        let bgClass = 'bg-slate-800 text-white';
+        if (isError) bgClass = 'bg-rose-600 text-white';
+        if (isAlert) bgClass = 'bg-red-600 text-white border-2 border-red-400 shadow-[0_0_15px_rgba(220,38,38,0.5)] animate-pulse';
+        
+        toast.className = `px-4 py-3 rounded shadow-lg text-sm font-semibold flex items-center gap-2 transform transition-all duration-300 translate-y-full opacity-0 ${bgClass}`;
+        
+        const icon = isError ? 'error' : (isAlert ? 'campaign' : 'check_circle');
+        toast.innerHTML = `<span class="material-icons-outlined text-lg">${icon}</span> ${message}`;
+        
+        container.appendChild(toast);
+        
+        // Trigger enter animation
+        requestAnimationFrame(() => {
+            toast.classList.remove('translate-y-full', 'opacity-0');
+        });
+        
+        // Auto remove
+        setTimeout(() => {
+            toast.classList.add('translate-y-full', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    }
+
+    function attachAjaxForms() {
+        // Status update forms
+        document.querySelectorAll('form[action*="/sos-alerts/"][method="POST"]:not(#bulkSosForm)').forEach(form => {
+            // Avoid attaching multiple times
+            if (form.dataset.ajaxAttached) return;
+            form.dataset.ajaxAttached = "true";
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const btn = form.querySelector('button');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '...';
+                btn.disabled = true;
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: { 'Accept': 'application/json' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message);
+                        pollData(true); // force instant refresh of table
+                    } else {
+                        showToast(data.message || 'Error occurred', 'error');
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    showToast('Network error', 'error');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+            });
+        });
+
+        // Bulk form
+        const bulkForm = document.getElementById('bulkSosForm');
+        if (bulkForm && !bulkForm.dataset.ajaxAttached) {
+            bulkForm.dataset.ajaxAttached = "true";
+            bulkForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // check if anything is selected
+                const selected = document.querySelectorAll('.sos-row:checked');
+                if (selected.length === 0) {
+                    showToast('No rows selected', 'error');
+                    return;
+                }
+
+                const btn = bulkForm.querySelector('button');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '...';
+                btn.disabled = true;
+
+                fetch(bulkForm.action, {
+                    method: 'POST',
+                    body: new FormData(bulkForm),
+                    headers: { 'Accept': 'application/json' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message);
+                        // reset checkboxes
+                        document.querySelectorAll('.sos-row:checked').forEach(c => c.checked = false);
+                        const toggleAll = document.getElementById('toggleAllSos');
+                        if (toggleAll) toggleAll.checked = false;
+                        pollData(true);
+                    } else {
+                        showToast(data.message || 'Error', 'error');
+                    }
+                })
+                .catch(err => showToast('Network error', 'error'))
+                .finally(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+            });
+        }
+    }
+
+    function pollData(forceSilently = false) {
+        fetch(pollUrl, { headers: { 'Accept': 'application/json' } })
+            .then(res => res.json())
+            .then(data => {
+                // Check for new SOS alerts
+                if (!forceSilently && data.latest_id > latestId) {
+                    latestId = data.latest_id;
+                    showToast('🚨 NEW SOS ALERT RECEIVED!', 'alert');
+                    // Play a browser beep sound (optional/basic beep hack)
+                    const audio = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU');
+                    audio.play().catch(e => {}); 
+                } else if (forceSilently) {
+                    latestId = data.latest_id;
+                }
+
+                // Parse the returned HTML block and update DOM
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data.html, 'text/html');
+                
+                const newStats = doc.getElementById('sos-stats-container');
+                const newTable = doc.getElementById('sos-table-body');
+                
+                if (newStats) document.getElementById('sos-stats-container').innerHTML = newStats.innerHTML;
+                if (newTable) {
+                    document.getElementById('sos-table-body').innerHTML = newTable.innerHTML;
+                    attachAjaxForms(); // re-attach listeners to new DOM elements
+                }
+            })
+            .catch(err => console.error('Polling failed', err));
+    }
+
+    // Initialize
+    attachAjaxForms();
+    setInterval(() => pollData(), 10000); // 10 seconds polling
+
+    return { pollData };
+})();
 </script>
 @endsection
