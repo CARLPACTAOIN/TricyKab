@@ -40,6 +40,16 @@ return [
             env('FIREBASE_PROJECTION_ENABLED', false),
             FILTER_VALIDATE_BOOL
         ),
+        'service_account_path' => env('FIREBASE_SERVICE_ACCOUNT_PATH', storage_path('firebase-service-account.json')),
+        'project_id' => env('FIREBASE_PROJECT_ID'),
+    ],
+
+    // PRD §5.2 — Semaphore PH SMS gateway for OTP delivery.
+    // Set SEMAPHORE_API_KEY in .env for production use.
+    // Leave blank to fall back to LogOtpSmsSender (dev/debug mode).
+    'semaphore' => [
+        'api_key' => env('SEMAPHORE_API_KEY'),
+        'sender_name' => env('SEMAPHORE_SENDER_NAME', 'TricyKab'),
     ],
 
 ];

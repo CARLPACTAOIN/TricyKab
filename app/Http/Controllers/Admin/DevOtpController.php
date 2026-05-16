@@ -24,8 +24,7 @@ class DevOtpController extends Controller
             ->get(['id', 'phone_number', 'role_hint', 'expires_at', 'consumed_at', 'locked_at', 'verify_attempts', 'created_at']);
 
         $rows = $challenges->map(function (OtpChallenge $c) {
-            $cacheKey = OtpChallengeService::devPlaintextCacheKey((string) $c->phone_number, (string) $c->role_hint);
-            $plaintext = Cache::get($cacheKey);
+            $plaintext = Cache::get(OtpChallengeService::devPlaintextCacheKey($c->id));
 
             return [
                 'id' => $c->id,

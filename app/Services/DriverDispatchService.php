@@ -251,6 +251,9 @@ class DriverDispatchService
                 ->where('status', BookingDispatchAttempt::STATUS_OPEN)
                 ->update(['status' => BookingDispatchAttempt::STATUS_CANCELLED]);
 
+            // PRD §7.5 — recalculate acceptance rate after every response
+            $this->recalculateAcceptanceRate($driver);
+
             return ['booking' => $bookingLocked->fresh()];
         });
     }
@@ -338,6 +341,9 @@ class DriverDispatchService
                 reason: $reasonCode,
             );
 
+            // PRD §7.5 — recalculate acceptance rate after every response
+            $this->recalculateAcceptanceRate($driver);
+
             return ['status' => 'DECLINED'];
         });
     }
@@ -417,5 +423,40 @@ class DriverDispatchService
 
             return ['booking' => $locked->fresh()];
         });
+    }
+
+    /**
+     * PRD §7.5 — Recalculate and persist the driver's acceptance rate snapshot.
+     *
+     * Computes: ACCEPTED / (ACCEPTED + DECLINED + EXPIRED) across all dispatch
+     * candidates for this driver. Stores as a percentage (0–100.00).
+     */
+    private function recalculateAcceptanceRate(Driver $driver): void
+    {
+        $terminalStatuses = [
+            BookingDispatchCandidate::RESPONSE_ACCEPTED,
+            BookingDispatchCandidate::RESPONSE_DECLINED,
+            'EXPIRED',
+        ];
+
+        $total = BookingDispatchCandidate::query()
+            ->where('driver_id', $driver->id)
+            ->whereIn('response_status', $terminalStatuses)
+            ->count();
+
+        if ($total === 0) {
+            return; // Not enough data; preserve existing snapshot
+        }
+
+        $accepted = BookingDispatchCandidate::query()
+            ->where('driver_id', $driver->id)
+            ->where('response_status', BookingDispatchCandidate::RESPONSE_ACCEPTED)
+            ->count();
+
+        $rate = round(($accepted / $total) * 100, 2);
+
+        Driver::query()
+            ->whereKey($driver->id)
+            ->update(['acceptance_rate_snapshot' => $rate]);
     }
 }

@@ -84,6 +84,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard-export', [DashboardController::class, 'export'])->name('admin.dashboard.export');
 
     Route::get('/search', [\App\Http\Controllers\Admin\SearchController::class, 'index'])->name('admin.search');
+    Route::get('/search/suggest', [\App\Http\Controllers\Admin\SearchController::class, 'suggest'])->name('admin.search.suggest');
+    Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('admin.notifications');
+    Route::post('/notifications/dismiss', [\App\Http\Controllers\Admin\NotificationController::class, 'dismiss'])->name('admin.notifications.dismiss');
 
     // Shared Routes (accessible to all admin roles; TODA scoping enforced in controllers)
     Route::resource('tricycles', \App\Http\Controllers\Admin\TricycleController::class);
@@ -94,7 +97,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('bookings-export', [BookingController::class, 'export'])->name('admin.bookings.export');
     Route::get('bookings/{reference}', [BookingController::class, 'show'])->name('admin.bookings.show');
 
-    // Analytics
+    // PRD §6.5 / §7.19 / §9.5 — AJAX endpoints for booking detail page modals
+    Route::post('bookings/{reference}/override', [BookingController::class, 'override'])->name('admin.bookings.override');
+    Route::get('bookings/{reference}/receipt-data', [BookingController::class, 'receiptData'])->name('admin.bookings.receipt-data');
+    Route::post('bookings/{reference}/dispute', [BookingController::class, 'openDispute'])->name('admin.bookings.dispute');
+
     Route::get('analytics', [AnalyticsController::class, 'index'])->name('admin.analytics');
 
     // LGU-Only Routes
@@ -122,6 +129,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
         // SOS Alerts
         Route::get('sos-alerts', [SosAlertController::class, 'index'])->name('admin.sos');
+        Route::get('sos-alerts/poll', [SosAlertController::class, 'poll'])->name('admin.sos.poll');
         Route::patch('sos-alerts/{sosAlert}/status', [SosAlertController::class, 'updateStatus'])->name('admin.sos.update-status');
         Route::patch('sos-alerts/status', [SosAlertController::class, 'bulkUpdateStatus'])->name('admin.sos.bulk-update-status');
         Route::get('sos-alerts-export', [SosAlertController::class, 'export'])->name('admin.sos.export');

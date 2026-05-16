@@ -41,9 +41,13 @@ class OtpChallengeService
         private readonly TokenIssuer $tokenIssuer,
     ) {}
 
-    public static function devPlaintextCacheKey(string $normalizedPhone, string $roleHint): string
+    /**
+     * Pilot/debug cache key — one entry per OTP challenge, not per phone.
+     * A phone+role key would overwrite every historical row on the dev OTP page.
+     */
+    public static function devPlaintextCacheKey(int $challengeId): string
     {
-        return 'otp-dev-plaintext:'.$normalizedPhone.':'.strtoupper($roleHint);
+        return 'otp-dev-plaintext:challenge:'.$challengeId;
     }
 
     /**
@@ -94,7 +98,7 @@ class OtpChallengeService
         // hand it to testers via the in-panel dev page (only readable when APP_DEBUG is on).
         if (config('app.debug') === true) {
             Cache::put(
-                self::devPlaintextCacheKey($normalized, $roleHint),
+                self::devPlaintextCacheKey($challenge->id),
                 $plain,
                 now()->addSeconds(self::DEV_PLAINTEXT_CACHE_TTL_SECONDS),
             );

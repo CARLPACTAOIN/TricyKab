@@ -136,6 +136,7 @@ class PassengerTripController extends Controller
             'receipt_number' => $r->receipt_number,
             'generated_at' => $r->generated_at?->utc()->toIso8601String(),
             'payload' => $r->receipt_payload_json,
+            'trip_id' => $booking->trip?->id,
         ]);
     }
 }
