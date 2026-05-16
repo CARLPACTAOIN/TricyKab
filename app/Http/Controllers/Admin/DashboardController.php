@@ -5,149 +5,63 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Barangay;
 use App\Models\Booking;
-use App\Models\Driver;
 use App\Models\Toda;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Builder;
+use App\Services\Admin\AdminExportService;
+use App\Services\Admin\DashboardMetricsService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DashboardController extends Controller
 {
+    public function __construct(
+        private readonly DashboardMetricsService $metrics,
+        private readonly AdminExportService $exports,
+    ) {}
+
     public function index(Request $request)
     {
-        $selectedRange = $request->string('range')->toString() ?: '7d';
-        $selectedRange = in_array($selectedRange, ['7d', '30d', 'month'], true) ? $selectedRange : '7d';
-        if ($request->user()->isTodaAdmin()) {
-            $selectedTodaId = $request->user()->toda_id;
-        } else {
-            $selectedTodaId = $request->filled('toda_id') ? (int) $request->input('toda_id') : null;
-        }
-        $selectedBarangayId = $request->filled('barangay_id') ? (int) $request->input('barangay_id') : null;
-
-        $filteredQuery = $this->applyFilters(
-            Booking::query()->with(['passenger', 'driver']),
-            $selectedRange,
-            $selectedTodaId,
-            $selectedBarangayId
+        $filters = $this->metrics->resolveFiltersFromRequest(
+            $request->user(),
+            $request->string('range')->toString() ?: '7d',
+            $request->filled('toda_id') ? (int) $request->input('toda_id') : null,
+            $request->filled('barangay_id') ? (int) $request->input('barangay_id') : null,
         );
 
-        $filteredBookings = (clone $filteredQuery)->get();
-        $latestBookings = (clone $filteredQuery)->latest('created_at')->limit(10)->get();
+        $metrics = $this->metrics->build(
+            $request->user(),
+            $filters['range'],
+            $filters['toda_id'],
+            $filters['barangay_id'],
+        );
 
-        $pickupHeatmapPoints = $filteredBookings
-            ->filter(fn (Booking $booking) => $booking->pickup_lat !== null && $booking->pickup_lng !== null)
-            ->map(fn (Booking $booking) => [
-                'lat' => (float) $booking->pickup_lat,
-                'lng' => (float) $booking->pickup_lng,
-                'weight' => 1,
-                'reference' => $booking->booking_reference,
-            ])
-            ->values()
-            ->all();
-
-        $destinationHeatmapPoints = $filteredBookings
-            ->filter(fn (Booking $booking) => $booking->destination_lat !== null && $booking->destination_lng !== null)
-            ->map(fn (Booking $booking) => [
-                'lat' => (float) $booking->destination_lat,
-                'lng' => (float) $booking->destination_lng,
-                'weight' => 1,
-                'reference' => $booking->booking_reference,
-            ])
-            ->values()
-            ->all();
-
-        $acceptedBookings = $filteredBookings->filter(fn (Booking $booking) => $booking->accepted_at !== null);
-        $assignedBookings = $filteredBookings->filter(fn (Booking $booking) => $booking->driver_id !== null);
-        $completedBookings = $filteredBookings->where('status', Booking::STATUS_COMPLETED);
-
-        $avgWaitMinutes = round((float) ($acceptedBookings->avg(
-            fn (Booking $booking) => $booking->created_at?->diffInMinutes($booking->accepted_at) ?? 0
-        ) ?? 0), 1);
-
-        $bookingToAcceptRate = $filteredBookings->isNotEmpty()
-            ? round(($acceptedBookings->count() / $filteredBookings->count()) * 100)
-            : 0;
-
-        $completionRate = $assignedBookings->isNotEmpty()
-            ? round(($completedBookings->count() / $assignedBookings->count()) * 100)
-            : 0;
-
-        $driverQuery = Driver::query();
-        if ($request->user()->isTodaAdmin()) {
-            $driverQuery->where('toda_id', $request->user()->toda_id);
-        }
-
-        $activeDrivers = (clone $driverQuery)->where('status', 'active')->count();
-        $totalDrivers = (clone $driverQuery)->count();
-        $driverAvailabilityRate = $totalDrivers > 0
-            ? round(($activeDrivers / $totalDrivers) * 100)
-            : 0;
-
-        $chartWindow = $this->buildChartWindow($selectedRange);
-        $bookingChart = [
-            'categories' => $chartWindow->pluck('label')->all(),
-            'bookings' => $chartWindow->map(function (array $entry) use ($filteredBookings) {
-                return $filteredBookings->filter(
-                    fn (Booking $booking) => $booking->created_at?->isSameDay($entry['date'])
-                )->count();
-            })->all(),
-            'completed' => $chartWindow->map(function (array $entry) use ($filteredBookings) {
-                return $filteredBookings->filter(
-                    fn (Booking $booking) => $booking->completed_at?->isSameDay($entry['date'])
-                )->count();
-            })->all(),
-        ];
-
-        $waitTimeChart = [
-            'categories' => $chartWindow->pluck('label')->all(),
-            'values' => $chartWindow->map(function (array $entry) use ($acceptedBookings) {
-                return round((float) ($acceptedBookings->filter(
-                    fn (Booking $booking) => $booking->created_at?->isSameDay($entry['date'])
-                )->avg(fn (Booking $booking) => $booking->created_at?->diffInMinutes($booking->accepted_at) ?? 0) ?? 0), 1);
-            })->all(),
-        ];
-
-        return view('dashboard', [
+        return view('dashboard', array_merge($metrics, [
+            'selectedRange' => $filters['range'],
+            'selectedTodaId' => $filters['toda_id'],
+            'selectedBarangayId' => $filters['barangay_id'],
             'todas' => Toda::query()->orderBy('name')->get(),
             'barangays' => Barangay::query()->orderBy('name')->get(),
-            'selectedRange' => $selectedRange,
-            'selectedTodaId' => $selectedTodaId,
-            'selectedBarangayId' => $selectedBarangayId,
-            'avgWaitMinutes' => $avgWaitMinutes,
-            'bookingToAcceptRate' => $bookingToAcceptRate,
-            'completionRate' => $completionRate,
-            'activeDrivers' => $activeDrivers,
-            'tripsToday' => $completedBookings->filter(fn (Booking $booking) => $booking->completed_at?->isToday())->count(),
-            'driverAvailabilityRate' => $driverAvailabilityRate,
-            'bookingChart' => $bookingChart,
-            'waitTimeChart' => $waitTimeChart,
-            'pickupHeatmapPoints' => $pickupHeatmapPoints,
-            'destinationHeatmapPoints' => $destinationHeatmapPoints,
-            'latestBookings' => $latestBookings,
-        ]);
+            'pickupHeatmapPoints' => $metrics['pickup_heatmap_points'],
+            'destinationHeatmapPoints' => $metrics['destination_heatmap_points'],
+            'avgWaitMinutes' => $metrics['avg_wait_minutes'],
+            'bookingToAcceptRate' => $metrics['booking_to_accept_rate'],
+            'completionRate' => $metrics['completion_rate'],
+            'activeDrivers' => $metrics['active_drivers'],
+            'onlineDrivers' => $metrics['online_drivers'],
+            'driversOnTrip' => $metrics['drivers_on_trip'],
+            'driverAvailabilityRate' => $metrics['driver_availability_rate'],
+            'tripsToday' => $metrics['trips_today'],
+            'bookingChart' => $metrics['booking_chart'],
+            'waitTimeChart' => $metrics['wait_time_chart'],
+            'tripsPerBarangay' => $metrics['trips_per_barangay'],
+            'latestBookings' => $metrics['latest_bookings'],
+            'adminRoleLabel' => $metrics['admin_role_label'],
+            'scopeNote' => $metrics['scope_note'],
+        ]));
     }
 
     public function export(Request $request): StreamedResponse
     {
-        $selectedRange = $request->string('range')->toString() ?: '7d';
-        $selectedRange = in_array($selectedRange, ['7d', '30d', 'month'], true) ? $selectedRange : '7d';
-        if ($request->user()->isTodaAdmin()) {
-            $selectedTodaId = $request->user()->toda_id;
-        } else {
-            $selectedTodaId = $request->filled('toda_id') ? (int) $request->input('toda_id') : null;
-        }
-        $selectedBarangayId = $request->filled('barangay_id') ? (int) $request->input('barangay_id') : null;
-
-        $filteredQuery = $this->applyFilters(
-            Booking::query()->with(['passenger', 'driver']),
-            $selectedRange,
-            $selectedTodaId,
-            $selectedBarangayId
-        );
-
-        $rows = (clone $filteredQuery)->latest('created_at')->get();
+        $rows = $this->exportBookings($request);
 
         return response()->streamDownload(function () use ($rows) {
             $handle = fopen('php://output', 'w');
@@ -168,50 +82,54 @@ class DashboardController extends Controller
         }, 'dashboard-kpi-export-'.now()->format('Ymd-His').'.csv', ['Content-Type' => 'text/csv']);
     }
 
-    private function applyFilters(Builder $query, string $range, ?int $todaId, ?int $barangayId): Builder
+    public function exportPdf(Request $request)
     {
-        $query->where('created_at', '>=', $this->resolveRangeStart($range));
+        $filters = $this->metrics->resolveFiltersFromRequest(
+            $request->user(),
+            $request->string('range')->toString() ?: '7d',
+            $request->filled('toda_id') ? (int) $request->input('toda_id') : null,
+            $request->filled('barangay_id') ? (int) $request->input('barangay_id') : null,
+        );
 
-        if ($todaId) {
-            $query->whereHas('driver', function (Builder $driverQuery) use ($todaId) {
-                $driverQuery->where('toda_id', $todaId);
-            });
-        }
+        $metrics = $this->metrics->build(
+            $request->user(),
+            $filters['range'],
+            $filters['toda_id'],
+            $filters['barangay_id'],
+        );
 
-        if ($barangayId) {
-            $query->where(function (Builder $bookingQuery) use ($barangayId) {
-                $bookingQuery
-                    ->where('origin_barangay_id', $barangayId)
-                    ->orWhere('destination_barangay_id', $barangayId);
-            });
-        }
+        $todaName = $filters['toda_id']
+            ? Toda::query()->find($filters['toda_id'])?->name
+            : null;
+        $barangayName = $filters['barangay_id']
+            ? Barangay::query()->find($filters['barangay_id'])?->name
+            : null;
 
-        return $query;
+        return $this->exports->downloadPdf('admin.exports.dashboard-pdf', [
+            'generatedAt' => now(),
+            'rangeLabel' => $this->metrics->rangeLabel($filters['range']),
+            'todaName' => $todaName,
+            'barangayName' => $barangayName,
+            'metrics' => $metrics,
+            'adminRoleLabel' => $metrics['admin_role_label'],
+        ], 'dashboard-kpi-'.now()->format('Ymd-His').'.pdf');
     }
 
-    private function resolveRangeStart(string $range): Carbon
+    /**
+     * @return \Illuminate\Support\Collection<int, Booking>
+     */
+    private function exportBookings(Request $request)
     {
-        return match ($range) {
-            '30d' => now()->startOfDay()->subDays(29),
-            'month' => now()->startOfMonth(),
-            default => now()->startOfDay()->subDays(6),
-        };
-    }
+        $filters = $this->metrics->resolveFiltersFromRequest(
+            $request->user(),
+            $request->string('range')->toString() ?: '7d',
+            $request->filled('toda_id') ? (int) $request->input('toda_id') : null,
+            $request->filled('barangay_id') ? (int) $request->input('barangay_id') : null,
+        );
 
-    private function buildChartWindow(string $range): Collection
-    {
-        $dates = collect();
-        $cursor = $this->resolveRangeStart($range)->copy();
-        $end = now()->copy()->endOfDay();
-
-        while ($cursor->lte($end)) {
-            $dates->push($cursor->copy());
-            $cursor->addDay();
-        }
-
-        return $dates->map(fn (Carbon $date) => [
-            'date' => $date,
-            'label' => $date->format('M d'),
-        ]);
+        return $this->metrics
+            ->filteredBookingsQuery($filters['range'], $filters['toda_id'], $filters['barangay_id'])
+            ->latest('created_at')
+            ->get();
     }
 }

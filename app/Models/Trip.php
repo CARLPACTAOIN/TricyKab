@@ -32,6 +32,8 @@ class Trip extends Model
         'passenger_count',
         'detour_seconds_over_initial_eta',
         'gps_quality_status',
+        'rating',
+        'rated_at',
         'end_method',
     ];
 
@@ -40,6 +42,7 @@ class Trip extends Model
         return [
             'started_at' => 'datetime',
             'ended_at' => 'datetime',
+            'rated_at' => 'datetime',
             'start_latitude' => 'decimal:7',
             'start_longitude' => 'decimal:7',
             'end_latitude' => 'decimal:7',

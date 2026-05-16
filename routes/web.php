@@ -82,6 +82,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/dashboard-export', [DashboardController::class, 'export'])->name('admin.dashboard.export');
+    Route::get('/dashboard-export-pdf', [DashboardController::class, 'exportPdf'])->name('admin.dashboard.export-pdf');
 
     Route::get('/search', [\App\Http\Controllers\Admin\SearchController::class, 'index'])->name('admin.search');
     Route::get('/search/suggest', [\App\Http\Controllers\Admin\SearchController::class, 'suggest'])->name('admin.search.suggest');
@@ -95,6 +96,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // Bookings & Trips
     Route::get('bookings', [BookingController::class, 'index'])->name('admin.bookings');
     Route::get('bookings-export', [BookingController::class, 'export'])->name('admin.bookings.export');
+    Route::get('bookings-export-pdf', [BookingController::class, 'exportPdf'])->name('admin.bookings.export-pdf');
     Route::get('bookings/{reference}', [BookingController::class, 'show'])->name('admin.bookings.show');
 
     // PRD §6.5 / §7.19 / §9.5 — AJAX endpoints for booking detail page modals

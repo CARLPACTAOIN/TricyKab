@@ -32,7 +32,8 @@
     <div class="flex flex-col xl:flex-row xl:items-end justify-between gap-6">
         <div>
             <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Dashboard Overview</h1>
-            <p class="text-slate-500 mt-1">Operational snapshot aligned with PRD KPIs and location-driven admin visibility.</p>
+            <p class="text-slate-500 mt-1">{{ $scopeNote ?? 'Operational snapshot aligned with PRD KPIs and location-driven admin visibility.' }}</p>
+            <p class="text-xs font-semibold text-primary mt-2">{{ $adminRoleLabel ?? 'Admin' }}</p>
         </div>
         <form method="GET" action="{{ route('admin.dashboard') }}" class="flex flex-wrap items-center gap-3">
             <div class="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm">
@@ -43,7 +44,7 @@
                     <option value="month" @selected($selectedRange === 'month')>This month</option>
                 </select>
             </div>
-            @if(auth()->user()->isLguAdmin())
+            @if(auth()->user()->isMunicipalAdmin())
             <div class="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm">
                 <span class="material-icons-outlined text-slate-400 text-lg">groups</span>
                 <select name="toda_id" onchange="this.form.submit()" class="bg-transparent border-none focus:ring-0 text-slate-700 dark:text-slate-200">
@@ -67,10 +68,10 @@
                 <span class="material-icons-outlined text-base">download</span>
                 Export CSV
             </a>
-            <button type="button" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm cursor-not-allowed opacity-80" disabled>
+            <a href="{{ route('admin.dashboard.export-pdf', request()->query()) }}" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm hover:opacity-90">
                 <span class="material-icons-outlined text-base">picture_as_pdf</span>
                 Export PDF
-            </button>
+            </a>
         </form>
     </div>
 
@@ -121,7 +122,15 @@
                 <span class="material-icons-outlined text-rose-500">insights</span>
             </div>
             <p class="text-3xl font-bold mt-3 text-slate-900 dark:text-white">{{ $driverAvailabilityRate }}%</p>
-            <p class="text-xs text-slate-500 mt-2">Active drivers / total registered drivers</p>
+            <p class="text-xs text-slate-500 mt-2">Online drivers / active fleet (PRD §20.1)</p>
+        </div>
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-sm uppercase tracking-wider text-slate-500">Online Now</span>
+                <span class="material-icons-outlined text-cyan-500">wifi</span>
+            </div>
+            <p class="text-3xl font-bold mt-3 text-slate-900 dark:text-white">{{ $onlineDrivers ?? 0 }}</p>
+            <p class="text-xs text-slate-500 mt-2">{{ $driversOnTrip ?? 0 }} on trip · {{ max(0, ($onlineDrivers ?? 0) - ($driversOnTrip ?? 0)) }} idle</p>
         </div>
     </div>
 
@@ -139,6 +148,39 @@
                 <span class="text-xs text-slate-400">Minutes</span>
             </div>
             <div id="waitTimeChart" class="w-full h-80"></div>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-100 dark:border-slate-800">
+            <h3 class="font-bold text-slate-800 dark:text-white">Trips per Barangay</h3>
+            <p class="text-xs text-slate-500 mt-1">Origin and destination counts within the selected window (PRD §20.1)</p>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 uppercase text-[10px] font-bold tracking-widest border-b border-slate-100 dark:border-slate-800">
+                        <th class="px-6 py-4">Barangay</th>
+                        <th class="px-6 py-4">Origins</th>
+                        <th class="px-6 py-4">Destinations</th>
+                        <th class="px-6 py-4">Total</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    @forelse($tripsPerBarangay ?? [] as $row)
+                        <tr>
+                            <td class="px-6 py-3 text-sm font-medium">{{ $row['name'] }}</td>
+                            <td class="px-6 py-3 text-sm">{{ $row['origin_count'] }}</td>
+                            <td class="px-6 py-3 text-sm">{{ $row['destination_count'] }}</td>
+                            <td class="px-6 py-3 text-sm font-semibold">{{ $row['total'] }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="px-6 py-8 text-center text-sm text-slate-500">No barangay trip data for the current filters.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 

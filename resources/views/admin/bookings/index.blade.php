@@ -32,10 +32,10 @@
                 <span class="material-icons-outlined text-base">download</span>
                 Export CSV
             </a>
-            <button type="button" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm cursor-not-allowed opacity-80" disabled>
+            <a href="{{ route('admin.bookings.export-pdf', request()->query()) }}" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm hover:opacity-90">
                 <span class="material-icons-outlined text-base">picture_as_pdf</span>
                 Export PDF
-            </button>
+            </a>
         </div>
     </div>
 
@@ -96,7 +96,7 @@
                 </select>
                 <span class="material-icons-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
             </div>
-            @if(auth()->user()->isLguAdmin())
+            @if(auth()->user()->isMunicipalAdmin())
             <div class="relative">
                 <select name="toda_id" class="pl-4 pr-10 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm appearance-none min-w-[180px]">
                     <option value="">All TODAs</option>

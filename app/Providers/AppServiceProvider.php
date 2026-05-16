@@ -4,7 +4,8 @@ namespace App\Providers;
 
 use App\Contracts\OtpSmsSender;
 use App\Services\Otp\LogOtpSmsSender;
-use App\Services\Otp\SemaphoreSmsService;
+use App\Services\Otp\UniSmsOtpSender;
+use App\Services\Sms\UniSmsService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -17,14 +18,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // PRD §5.2 — bind production SMS sender when API key is configured.
+        // PRD §5.2 — bind production SMS sender when UniSMS secret is configured.
         // Falls back to the log-only sender in dev/debug mode so no real SMS is sent.
+        $this->app->singleton(UniSmsService::class);
         $this->app->singleton(OtpSmsSender::class, function () {
-            if (! empty(config('services.semaphore.api_key'))) {
-                return new SemaphoreSmsService();
+            if (! empty(config('services.unisms.api_secret_key'))) {
+                return new UniSmsOtpSender(app(UniSmsService::class));
             }
 
-            return new LogOtpSmsSender();
+            return new LogOtpSmsSender;
         });
     }
 

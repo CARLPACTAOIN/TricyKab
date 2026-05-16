@@ -82,7 +82,7 @@ Route::prefix('v1')->group(function (): void {
             ->get('/bookings/{booking}/receipt', [PassengerTripController::class, 'receipt']);
 
         // PRD §3.1 — Passenger rates driver after trip completion
-        Route::middleware('idempotent')
+        Route::middleware(['passenger.trip.read', 'idempotent'])
             ->post('/trips/{trip}/rate', [TripRatingController::class, 'store']);
 
         // PRD §7.19 — Dispute filing (passenger or driver on own booking)

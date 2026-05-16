@@ -92,9 +92,9 @@
                 })();
             </script>
              <!-- Logout Form -->
-             <form method="POST" action="{{ route('logout') }}">
+             <form id="logout-form" method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="text-slate-400 hover:text-red-500 transition-colors" title="Logout">
+                <button type="button" id="logout-open-btn" class="text-slate-400 hover:text-red-500 transition-colors" title="Logout" aria-haspopup="dialog">
                     <span class="material-icons-outlined">logout</span>
                 </button>
             </form>

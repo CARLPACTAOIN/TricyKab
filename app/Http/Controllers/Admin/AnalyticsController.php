@@ -17,14 +17,14 @@ class AnalyticsController extends Controller
         $range = $request->string('range')->toString() ?: '7d';
         $range = in_array($range, ['7d', '30d', 'month'], true) ? $range : '7d';
         $user = auth()->user();
-        
+
         // Force `$todaId` if the user is a TODA Admin
         if ($user->isTodaAdmin()) {
             $todaId = $user->toda_id;
         } else {
             $todaId = $request->filled('toda_id') ? (int) $request->input('toda_id') : null;
         }
-        
+
         $start = $this->resolveRangeStart($range);
 
         $bookingsQuery = Booking::query()->with('driver')->where('created_at', '>=', $start);
@@ -130,10 +130,7 @@ class AnalyticsController extends Controller
             'tripsPerToda' => $tripsPerToda,
             'topDrivers' => $topDrivers,
             'flaggedDrivers' => $flaggedDrivers,
-            'disputeTotals' => [
-                'open' => Dispute::query()->where('status', 'OPEN')->count(),
-                'under_review' => Dispute::query()->where('status', 'UNDER_REVIEW')->count(),
-            ],
+            'disputeTotals' => $this->disputeTotals($todaId),
         ]);
     }
 
@@ -144,5 +141,22 @@ class AnalyticsController extends Controller
             'month' => now()->startOfMonth(),
             default => now()->startOfDay()->subDays(6),
         };
+    }
+
+    /**
+     * @return array{open: int, under_review: int}
+     */
+    private function disputeTotals(?int $todaId): array
+    {
+        $query = Dispute::query();
+
+        if ($todaId) {
+            $query->whereHas('booking.driver', fn ($q) => $q->where('toda_id', $todaId));
+        }
+
+        return [
+            'open' => (clone $query)->where('status', 'OPEN')->count(),
+            'under_review' => (clone $query)->where('status', 'UNDER_REVIEW')->count(),
+        ];
     }
 }

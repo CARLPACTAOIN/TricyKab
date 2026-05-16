@@ -120,7 +120,7 @@ class PassengerTripController extends Controller
             );
         }
 
-        $booking->load('receipt');
+        $booking->load(['receipt', 'trip', 'driver.user']);
 
         if ($booking->receipt === null) {
             return ApiResponse::error(
@@ -132,11 +132,21 @@ class PassengerTripController extends Controller
 
         $r = $booking->receipt;
 
+        $trip = $booking->trip;
+        $driver = $booking->driver;
+
         return ApiResponse::success([
             'receipt_number' => $r->receipt_number,
             'generated_at' => $r->generated_at?->utc()->toIso8601String(),
             'payload' => $r->receipt_payload_json,
-            'trip_id' => $booking->trip?->id,
+            'trip_id' => $trip?->id,
+            'trip_rating' => $trip?->rating,
+            'rated_at' => $trip?->rated_at?->utc()->toIso8601String(),
+            'can_rate' => $trip !== null
+                && $booking->status === Booking::STATUS_COMPLETED
+                && $trip->rated_at === null,
+            'driver_name' => $driver?->full_name,
+            'driver_rating_avg' => $driver?->rating,
         ]);
     }
 }

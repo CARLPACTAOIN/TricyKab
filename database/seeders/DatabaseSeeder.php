@@ -59,6 +59,16 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@tricykab.test',
             'password' => bcrypt('password'),
             'role' => 'admin',
+            'admin_scope' => 'lgu',
+            'status' => 'ACTIVE',
+        ]);
+
+        User::create([
+            'name' => 'TMU Operator',
+            'email' => 'tmu@tricykab.test',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'admin_scope' => 'tmu',
             'status' => 'ACTIVE',
         ]);
 
@@ -440,7 +450,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(TodaAdminSeeder::class);
-        
+
         $this->command->info('✅ Database seeded with Kabacan sample data!');
         $this->command->info('   Admin: admin@tricykab.test / password');
         $this->command->info('   TODA Admins: admin_poblaciontoda@tricykab.local / password (etc)');

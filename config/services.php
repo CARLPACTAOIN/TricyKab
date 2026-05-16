@@ -44,12 +44,13 @@ return [
         'project_id' => env('FIREBASE_PROJECT_ID'),
     ],
 
-    // PRD §5.2 — Semaphore PH SMS gateway for OTP delivery.
-    // Set SEMAPHORE_API_KEY in .env for production use.
+    // PRD §5.2 — UniSMS gateway for OTP delivery (delivery-only; codes generated in-app).
+    // Set UNISMS_API_SECRET_KEY in .env for production use.
     // Leave blank to fall back to LogOtpSmsSender (dev/debug mode).
-    'semaphore' => [
-        'api_key' => env('SEMAPHORE_API_KEY'),
-        'sender_name' => env('SEMAPHORE_SENDER_NAME', 'TricyKab'),
+    'unisms' => [
+        'api_secret_key' => env('UNISMS_API_SECRET_KEY'),
+        'sender_id' => env('UNISMS_SENDER_ID', 'TricyKab'),
+        'base_url' => env('UNISMS_BASE_URL', 'https://unismsapi.com/api'),
     ],
 
 ];

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Dispute;
 use App\Models\Toda;
+use App\Services\Admin\AdminExportService;
 use App\Services\AuditLogger;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -27,8 +28,8 @@ class BookingController extends Controller
 
     public function __construct(
         private readonly AuditLogger $audit,
+        private readonly AdminExportService $exports,
     ) {}
-
 
     public function index(Request $request)
     {
@@ -156,6 +157,45 @@ class BookingController extends Controller
 
     public function export(Request $request): StreamedResponse
     {
+        $rows = $this->filteredExportBookings($request);
+
+        return response()->streamDownload(function () use ($rows) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['BookingReference', 'Status', 'RideType', 'Passenger', 'Driver', 'TODA', 'Fare', 'CreatedAt', 'CompletedAt']);
+            foreach ($rows as $booking) {
+                fputcsv($handle, [
+                    $booking->booking_reference,
+                    $booking->status,
+                    $booking->ride_type,
+                    $booking->passenger?->name,
+                    $booking->driver?->full_name,
+                    $booking->driver?->toda?->name,
+                    $booking->fare_amount,
+                    $booking->created_at?->toDateTimeString(),
+                    $booking->completed_at?->toDateTimeString(),
+                ]);
+            }
+            fclose($handle);
+        }, 'bookings-export-'.now()->format('Ymd-His').'.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $rows = $this->filteredExportBookings($request);
+
+        return $this->exports->downloadPdf('admin.exports.bookings-pdf', [
+            'generatedAt' => now(),
+            'adminRoleLabel' => $request->user()->adminRoleLabel(),
+            'bookings' => $rows,
+            'total' => $rows->count(),
+        ], 'bookings-export-'.now()->format('Ymd-His').'.pdf');
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, Booking>
+     */
+    private function filteredExportBookings(Request $request)
+    {
         $search = trim((string) $request->input('search', ''));
         $selectedRideType = $request->string('ride_type')->toString() ?: null;
         $selectedRideType = in_array($selectedRideType, ['shared', 'special'], true) ? $selectedRideType : null;
@@ -182,26 +222,7 @@ class BookingController extends Controller
             $query->whereIn('status', $statusTabs[$selectedTab]['statuses']);
         }
 
-        $rows = $query->latest('created_at')->get();
-
-        return response()->streamDownload(function () use ($rows) {
-            $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['BookingReference', 'Status', 'RideType', 'Passenger', 'Driver', 'TODA', 'Fare', 'CreatedAt', 'CompletedAt']);
-            foreach ($rows as $booking) {
-                fputcsv($handle, [
-                    $booking->booking_reference,
-                    $booking->status,
-                    $booking->ride_type,
-                    $booking->passenger?->name,
-                    $booking->driver?->full_name,
-                    $booking->driver?->toda?->name,
-                    $booking->fare_amount,
-                    $booking->created_at?->toDateTimeString(),
-                    $booking->completed_at?->toDateTimeString(),
-                ]);
-            }
-            fclose($handle);
-        }, 'bookings-export-'.now()->format('Ymd-His').'.csv', ['Content-Type' => 'text/csv']);
+        return $query->latest('created_at')->get();
     }
 
     private function applyFilters(

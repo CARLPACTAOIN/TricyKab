@@ -197,6 +197,5 @@ it('returns 429 after five otp requests in one hour when cooldown bypassed', fun
 
     $sixth = $this->postJson('/api/v1/auth/otp/request', $payload);
     $sixth->assertStatus(429);
-    $sixth->assertJsonPath('error.code', 'RATE_LIMITED');
-    expect($sixth->json('error.details.retry_after_seconds'))->toBeInt();
+    $sixth->assertJsonPath('error.code', 'OTP_RATE_LIMIT_EXCEEDED');
 });

@@ -10,14 +10,14 @@ class LguAdminOnly
 {
     /**
      * Handle an incoming request.
-     * Deny access to TODA Admins — LGU Admin accounts only.
+     * Deny access to TODA Admins — LGU/TMU municipal admin accounts only (PRD §17.1).
      */
     public function handle(Request $request, Closure $next): Response
     {
         abort_unless(
-            $request->user()?->isLguAdmin(),
+            $request->user()?->isMunicipalAdmin(),
             403,
-            'Access denied. This area is restricted to LGU Administrators only.'
+            'Access denied. This area is restricted to LGU/TMU administrators only.'
         );
 
         return $next($request);

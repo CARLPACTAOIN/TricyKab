@@ -66,7 +66,7 @@
             <img class="w-10 h-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbIk3iuRxp4r-wgqZbyWYOMM9sOSkKl2jt-Fq9wGM352O2H_e_F1z5EhUZerxZLjTcG8HC2jbxNPZlAAkEOrTVMUn9jc_g1y183yDb-cLSjaSLkD9fBHPMvh9L1rny2AqouohpPml_Ah_ya4q8F9CVvfQo6GATF2Z6kuHUuVYw8BF9BsfKc7FjnXKzkYv149ya67FQDvNo8p-edFyyNUP4UaqMmtr84a6WHp1GT43jGz_sEM7qB74RUuuHH05MR8N-LXfHcV9jzDk" alt="Admin Profile">
             <div class="overflow-hidden">
                 <p class="text-sm font-semibold truncate">{{ Auth::user()->name ?? 'Admin' }}</p>
-                <p class="text-xs text-slate-500 truncate">{{ auth()->user()->isTodaAdmin() ? 'TODA Admin' : 'LGU Admin' }}</p>
+                <p class="text-xs text-slate-500 truncate">{{ auth()->user()->adminRoleLabel() }}</p>
             </div>
         </div>
     </div>

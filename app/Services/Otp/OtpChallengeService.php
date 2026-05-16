@@ -8,13 +8,13 @@ use App\Exceptions\Otp\OperationForbiddenException;
 use App\Exceptions\Otp\OtpChallengeLockedException;
 use App\Exceptions\Otp\OtpHourlyRateLimitedException;
 use App\Exceptions\Otp\OtpSendCooldownException;
-use App\Services\Auth\TokenIssuer;
 use App\Models\Driver;
 use App\Models\OtpChallenge;
 use App\Models\User;
+use App\Services\Auth\TokenIssuer;
 use App\Support\PhoneNormalizer;
-use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -74,22 +74,24 @@ class OtpChallengeService
             throw new OtpSendCooldownException(RateLimiter::availableIn($cooldownKey));
         }
 
-        OtpChallenge::query()
-            ->where('phone_number', $normalized)
-            ->where('role_hint', $roleHint)
-            ->whereNull('consumed_at')
-            ->update(['consumed_at' => now()]);
-
         $plain = sprintf('%06d', random_int(0, 999999));
 
-        $challenge = OtpChallenge::query()->create([
-            'phone_number' => $normalized,
-            'role_hint' => $roleHint,
-            'otp_hash' => Hash::make($plain),
-            'expires_at' => now()->addSeconds(self::OTP_EXPIRY_SECONDS),
-            'verify_attempts' => 0,
-            'resend_count' => 0,
-        ]);
+        $challenge = DB::transaction(function () use ($normalized, $roleHint, $plain) {
+            OtpChallenge::query()
+                ->where('phone_number', $normalized)
+                ->where('role_hint', $roleHint)
+                ->whereNull('consumed_at')
+                ->update(['consumed_at' => now()]);
+
+            return OtpChallenge::query()->create([
+                'phone_number' => $normalized,
+                'role_hint' => $roleHint,
+                'otp_hash' => Hash::make($plain),
+                'expires_at' => now()->addSeconds(self::OTP_EXPIRY_SECONDS),
+                'verify_attempts' => 0,
+                'resend_count' => 0,
+            ]);
+        });
 
         RateLimiter::hit($hourlyKey, self::HOURLY_DECAY_SECONDS);
         RateLimiter::hit($cooldownKey, self::SEND_COOLDOWN_SECONDS);
@@ -209,17 +211,19 @@ class OtpChallengeService
             ]);
         }
 
-        $matched->consumed_at = now();
-        $matched->save();
+        return DB::transaction(function () use ($matched, $normalizedPhone) {
+            $matched->consumed_at = now();
+            $matched->save();
 
-        OtpChallenge::query()
-            ->where('phone_number', $normalizedPhone)
-            ->where('role_hint', $matched->role_hint)
-            ->whereNull('consumed_at')
-            ->where('id', '!=', $matched->getKey())
-            ->update(['consumed_at' => now()]);
+            OtpChallenge::query()
+                ->where('phone_number', $normalizedPhone)
+                ->where('role_hint', $matched->role_hint)
+                ->whereNull('consumed_at')
+                ->where('id', '!=', $matched->getKey())
+                ->update(['consumed_at' => now()]);
 
-        return $matched->role_hint ?? self::PASSENGER_ROLE_HINT;
+            return $matched->role_hint ?? self::PASSENGER_ROLE_HINT;
+        });
     }
 
     private function validatedNormalizedPhone(string $phoneRaw): string
@@ -321,5 +325,4 @@ class OtpChallengeService
             throw new OperationForbiddenException('Account is suspended.');
         }
     }
-
 }

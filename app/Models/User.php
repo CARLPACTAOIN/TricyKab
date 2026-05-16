@@ -33,6 +33,7 @@ class User extends Authenticatable
         'emergency_contact_phone',
         'profile_photo_url',
         'toda_id',
+        'admin_scope',
     ];
 
     /**
@@ -68,12 +69,39 @@ class User extends Authenticatable
 
     public function isLguAdmin(): bool
     {
-        return $this->isAdmin() && is_null($this->toda_id);
+        return $this->isAdmin()
+            && is_null($this->toda_id)
+            && ($this->admin_scope === null || $this->admin_scope === 'lgu');
+    }
+
+    public function isTmuAdmin(): bool
+    {
+        return $this->isAdmin()
+            && is_null($this->toda_id)
+            && $this->admin_scope === 'tmu';
     }
 
     public function isTodaAdmin(): bool
     {
-        return $this->isAdmin() && !is_null($this->toda_id);
+        return $this->isAdmin() && ! is_null($this->toda_id);
+    }
+
+    public function isMunicipalAdmin(): bool
+    {
+        return $this->isLguAdmin() || $this->isTmuAdmin();
+    }
+
+    public function adminRoleLabel(): string
+    {
+        if ($this->isTodaAdmin()) {
+            return 'TODA Admin';
+        }
+
+        if ($this->isTmuAdmin()) {
+            return 'TMU Admin';
+        }
+
+        return 'LGU Admin';
     }
 
     public function isDriver(): bool

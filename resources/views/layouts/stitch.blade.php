@@ -59,6 +59,41 @@
         </main>
     </div>
 
+    <!-- Logout confirmation modal (Stitch admin) -->
+    <div id="confirm-logout-modal" class="hidden fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-labelledby="confirm-logout-title">
+        <div id="confirm-logout-backdrop" class="absolute inset-0 bg-slate-900/75"></div>
+        <div class="relative min-h-full flex items-end sm:items-center justify-center p-4">
+            <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-xl shadow-2xl shadow-black/30 border border-slate-200 dark:border-slate-800 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
+                            <span class="material-icons-outlined text-amber-600 dark:text-amber-300">logout</span>
+                        </div>
+                        <div>
+                            <h3 id="confirm-logout-title" class="text-base font-bold text-slate-900 dark:text-white">Sign out?</h3>
+                            <p class="text-xs text-slate-500">You will need to log in again to access the admin panel.</p>
+                        </div>
+                    </div>
+                    <button type="button" id="confirm-logout-close" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-400">
+                        <span class="sr-only">Close</span>
+                        <span class="material-icons-outlined text-lg">close</span>
+                    </button>
+                </div>
+                <div class="px-6 py-5">
+                    <p class="text-sm text-slate-700 dark:text-slate-200">Are you sure you want to log out of TricyKab Admin?</p>
+                </div>
+                <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+                    <button type="button" id="confirm-logout-cancel" class="px-4 py-2 rounded-lg text-sm font-medium border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="button" id="confirm-logout-confirm" class="px-4 py-2 rounded-lg text-sm font-semibold bg-primary hover:bg-primary/90 text-white transition-colors">
+                        Log out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Global delete confirmation modal (Stitch admin) -->
     <div id="confirm-delete-modal" class="hidden fixed inset-0 z-[100]">
         <div id="confirm-delete-backdrop" class="absolute inset-0 bg-slate-900/75"></div>
@@ -95,7 +130,44 @@
             </div>
         </div>
     </div>
-    
+
+    <script>
+        (function () {
+            var modal = document.getElementById('confirm-logout-modal');
+            var form = document.getElementById('logout-form');
+            var openBtn = document.getElementById('logout-open-btn');
+            if (!modal || !form || !openBtn) return;
+
+            var backdrop = document.getElementById('confirm-logout-backdrop');
+            var closeBtn = document.getElementById('confirm-logout-close');
+            var cancelBtn = document.getElementById('confirm-logout-cancel');
+            var confirmBtn = document.getElementById('confirm-logout-confirm');
+
+            function openModal() {
+                modal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+                if (confirmBtn) confirmBtn.focus();
+            }
+
+            function closeModal() {
+                modal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+                openBtn.focus();
+            }
+
+            openBtn.addEventListener('click', openModal);
+            if (backdrop) backdrop.addEventListener('click', closeModal);
+            if (closeBtn) closeBtn.addEventListener('click', closeModal);
+            if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+            if (confirmBtn) confirmBtn.addEventListener('click', function () { form.submit(); });
+
+            document.addEventListener('keydown', function (e) {
+                if (modal.classList.contains('hidden')) return;
+                if (e.key === 'Escape') closeModal();
+            });
+        })();
+    </script>
+
     <!-- Charts Library -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <!-- Scripts -->
