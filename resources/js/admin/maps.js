@@ -485,6 +485,70 @@ function initStandbyPointPicker(root) {
     scheduleMapResize(map);
 }
 
+/** Single SOS alert location (admin SOS detail panel). */
+function initSosAlertMap(root) {
+    const payload = parsePayload(root);
+    const lat = Number(payload.lat);
+    const lng = Number(payload.lng);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        setMapMessage(root, 'No GPS coordinates for this alert.', 'warning');
+        return null;
+    }
+
+    const map = createLeafletMap(root, {
+        center: { lat, lng },
+        zoom: payload.zoom ?? 16,
+    });
+
+    const isDriver = payload.reporterRole === 'DRIVER';
+    const fillColor = isDriver ? '#d97706' : '#dc2626';
+
+    L.circleMarker([lat, lng], {
+        radius: 12,
+        color: '#ffffff',
+        weight: 3,
+        fillColor,
+        fillOpacity: 1,
+    })
+        .addTo(map)
+        .bindPopup(
+            `<strong>SOS #${payload.alertId ?? ''}</strong><br>${payload.label ?? 'Emergency location'}`,
+        )
+        .openPopup();
+
+    L.circle([lat, lng], {
+        radius: 120,
+        color: fillColor,
+        weight: 2,
+        opacity: 0.85,
+        fillColor,
+        fillOpacity: 0.12,
+    }).addTo(map);
+
+    map.setView([lat, lng], payload.zoom ?? 16);
+    scheduleMapResize(map);
+    root._tkLeafletMap = map;
+
+    return map;
+}
+
+function destroyMapOnRoot(root) {
+    if (root._tkLeafletMap) {
+        try {
+            root._tkLeafletMap.remove();
+        } catch {
+            /* ignore */
+        }
+        root._tkLeafletMap = null;
+    }
+    const canvas = mapCanvas(root);
+    if (canvas) {
+        canvas.replaceChildren();
+    }
+    clearMapMessage(root);
+}
+
 function initStandbyPointMap(root) {
     const payload = parsePayload(root);
     const points = Array.isArray(payload.points) ? payload.points : [];
@@ -543,6 +607,23 @@ async function initMapRoot(root) {
     if (context === 'standby-point-picker') {
         initStandbyPointPicker(root);
     }
+
+    if (context === 'sos-alert') {
+        const payload = parsePayload(root);
+        const lat = Number(payload.lat);
+        const lng = Number(payload.lng);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+            return;
+        }
+        initSosAlertMap(root);
+    }
+}
+
+/** Called from SOS admin UI when user selects a table row (dynamic payload). */
+function initSosAlertDetail(root, payload) {
+    destroyMapOnRoot(root);
+    root.dataset.mapPayload = JSON.stringify(payload ?? {});
+    return initSosAlertMap(root);
 }
 
 async function initAdminMaps() {
@@ -559,6 +640,13 @@ async function initAdminMaps() {
             setMapMessage(root, 'The map could not be loaded for this panel.', 'error');
         }
     }
+}
+
+if (typeof window !== 'undefined') {
+    window.TricyKabMaps = {
+        initSosAlertDetail,
+        destroyMapOnRoot,
+    };
 }
 
 if (document.readyState === 'loading') {
