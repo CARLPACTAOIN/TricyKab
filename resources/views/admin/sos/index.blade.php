@@ -70,7 +70,7 @@
     </form>
 
     <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-        <div class="xl:col-span-7 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div id="sos-table-wrap" class="xl:col-span-12 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/50">
                 <p class="text-xs text-slate-500">Click a row with coordinates to view the alert on the map.</p>
             </div>
@@ -158,21 +158,26 @@
             <div class="p-4">{{ $alerts->links() }}</div>
         </div>
 
-        <div class="xl:col-span-5 xl:sticky xl:top-6" id="sos-detail-panel">
-            <div id="sos-detail-empty" class="bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
-                <span class="material-icons-outlined text-4xl text-slate-300 mb-3">map</span>
-                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Select an SOS alert</p>
-                <p class="text-xs text-slate-500 mt-1">Click a table row or its coordinates to open the location map.</p>
-            </div>
-
-            <div id="sos-detail-content" class="hidden bg-white dark:bg-slate-900 rounded-xl border-2 border-red-200 dark:border-red-900/50 shadow-lg overflow-hidden">
+        <div id="sos-detail-panel" class="hidden xl:col-span-5 xl:sticky xl:top-6">
+            <div id="sos-detail-content" class="bg-white dark:bg-slate-900 rounded-xl border-2 border-red-200 dark:border-red-900/50 shadow-lg overflow-hidden">
                 <div class="px-5 py-4 bg-red-50 dark:bg-red-950/30 border-b border-red-100 dark:border-red-900/40 flex items-start justify-between gap-3">
-                    <div>
+                    <div class="min-w-0 flex-1">
                         <p class="text-[10px] font-bold uppercase tracking-wider text-red-600">SOS Alert</p>
                         <h2 class="text-lg font-bold text-slate-900 dark:text-white" id="sos-detail-title">#—</h2>
                         <p class="text-sm text-slate-600 dark:text-slate-300 mt-1" id="sos-detail-reporter">—</p>
                     </div>
-                    <span id="sos-detail-status" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">—</span>
+                    <div class="flex items-start gap-2 shrink-0">
+                        <span id="sos-detail-status" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">—</span>
+                        <button
+                            type="button"
+                            id="sos-detail-close"
+                            class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-200/80 dark:hover:bg-slate-800 transition-colors"
+                            title="Close panel"
+                            aria-label="Close SOS detail panel"
+                        >
+                            <span class="material-icons-outlined text-lg">close</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="p-5 space-y-4">
@@ -258,6 +263,27 @@ const SosDashboard = (function() {
         }, 5000);
     }
 
+    function closeSosDetail() {
+        selectedAlertId = null;
+
+        document.getElementById('sos-detail-panel')?.classList.add('hidden');
+
+        const tableWrap = document.getElementById('sos-table-wrap');
+        if (tableWrap) {
+            tableWrap.classList.remove('xl:col-span-7');
+            tableWrap.classList.add('xl:col-span-12');
+        }
+
+        document.querySelectorAll('.sos-alert-row').forEach((r) => {
+            r.classList.remove('bg-red-100', 'dark:bg-red-950/40', 'ring-2', 'ring-red-300', 'dark:ring-red-800');
+        });
+
+        const mapRoot = document.getElementById('sos-map-root');
+        if (mapRoot && window.TricyKabMaps?.destroyMapOnRoot) {
+            window.TricyKabMaps.destroyMapOnRoot(mapRoot);
+        }
+    }
+
     function openSosDetail(row) {
         const lat = parseFloat(row.dataset.lat);
         const lng = parseFloat(row.dataset.lng);
@@ -277,9 +303,14 @@ const SosDashboard = (function() {
         const role = row.dataset.reporterRole === 'DRIVER' ? 'Driver' : 'Passenger';
         const reporterName = row.dataset.reporterName || 'Unknown';
 
-        document.getElementById('sos-detail-empty')?.classList.add('hidden');
+        const tableWrap = document.getElementById('sos-table-wrap');
+        if (tableWrap) {
+            tableWrap.classList.remove('xl:col-span-12');
+            tableWrap.classList.add('xl:col-span-7');
+        }
+
+        document.getElementById('sos-detail-panel')?.classList.remove('hidden');
         const content = document.getElementById('sos-detail-content');
-        content?.classList.remove('hidden');
 
         document.getElementById('sos-detail-title').textContent = `#${alertId}`;
         document.getElementById('sos-detail-reporter').textContent = `${role}: ${reporterName}`;
@@ -321,6 +352,8 @@ const SosDashboard = (function() {
             });
         });
     }
+
+    document.getElementById('sos-detail-close')?.addEventListener('click', closeSosDetail);
 
     function attachAjaxForms() {
         document.querySelectorAll('form[action*="/sos-alerts/"][method="POST"]:not(#bulkSosForm)').forEach(form => {
@@ -426,7 +459,7 @@ const SosDashboard = (function() {
                     attachAjaxForms();
                     attachSosRowHandlers();
 
-                    if (selectedAlertId) {
+                    if (selectedAlertId && !document.getElementById('sos-detail-panel')?.classList.contains('hidden')) {
                         const row = document.querySelector(`.sos-alert-row[data-alert-id="${selectedAlertId}"]`);
                         if (row) openSosDetail(row);
                     }
