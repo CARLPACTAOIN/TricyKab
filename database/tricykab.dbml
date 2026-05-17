@@ -432,6 +432,9 @@ Table sos_alerts {
   trip_id bigint [null, ref: > trips.id]
   passenger_id bigint [null, ref: > users.id]
   passenger_name varchar
+  reporter_role varchar(20) [default: 'PASSENGER']
+  driver_id bigint [null, ref: > drivers.id]
+  driver_name varchar
   latitude decimal(10,7)
   longitude decimal(10,7)
   location_note varchar
