@@ -69,8 +69,8 @@
         <button class="px-4 py-2 bg-primary text-white rounded-lg text-sm">Apply to Selected</button>
     </form>
 
-    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-        <div id="sos-table-wrap" class="xl:col-span-12 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div id="sos-layout" class="flex flex-col xl:flex-row gap-6 items-start">
+        <div id="sos-table-wrap" class="w-full min-w-0 flex-1 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-all duration-300 ease-out">
             <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/50">
                 <p class="text-xs text-slate-500">Click a row with coordinates to view the alert on the map.</p>
             </div>
@@ -158,8 +158,12 @@
             <div class="p-4">{{ $alerts->links() }}</div>
         </div>
 
-        <div id="sos-detail-panel" class="hidden xl:col-span-5 xl:sticky xl:top-6">
-            <div id="sos-detail-content" class="bg-white dark:bg-slate-900 rounded-xl border-2 border-red-200 dark:border-red-900/50 shadow-lg overflow-hidden">
+        <div
+            id="sos-detail-panel"
+            class="sos-panel-closed xl:sticky xl:top-6 shrink-0 overflow-hidden"
+            aria-hidden="true"
+        >
+            <div id="sos-detail-content" class="sos-panel-inner bg-white dark:bg-slate-900 rounded-xl border-2 border-red-200 dark:border-red-900/50 shadow-lg overflow-hidden">
                 <div class="px-5 py-4 bg-red-50 dark:bg-red-950/30 border-b border-red-100 dark:border-red-900/40 flex items-start justify-between gap-3">
                     <div class="min-w-0 flex-1">
                         <p class="text-[10px] font-bold uppercase tracking-wider text-red-600">SOS Alert</p>
@@ -218,6 +222,60 @@
         </div>
     </div>
 </div>
+<style>
+    #sos-detail-panel {
+        width: 0;
+        max-width: 0;
+        opacity: 0;
+        transform: translateX(1.25rem);
+        pointer-events: none;
+        transition:
+            width 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+            max-width 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+            opacity 0.28s ease,
+            transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #sos-detail-panel .sos-panel-inner {
+        width: min(100vw - 2rem, 28rem);
+        transform: scale(0.98);
+        transform-origin: top right;
+        transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @media (min-width: 1280px) {
+        #sos-detail-panel .sos-panel-inner {
+            width: 28rem;
+        }
+    }
+
+    #sos-detail-panel.sos-panel-open {
+        width: min(100vw - 2rem, 28rem);
+        max-width: min(100vw - 2rem, 28rem);
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+    }
+
+    @media (min-width: 1280px) {
+        #sos-detail-panel.sos-panel-open {
+            width: 28rem;
+            max-width: 28rem;
+        }
+    }
+
+    #sos-detail-panel.sos-panel-open .sos-panel-inner {
+        transform: scale(1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        #sos-detail-panel,
+        #sos-detail-panel .sos-panel-inner,
+        #sos-table-wrap {
+            transition: none !important;
+        }
+    }
+</style>
 @endsection
 
 @section('scripts')
@@ -263,16 +321,14 @@ const SosDashboard = (function() {
         }, 5000);
     }
 
-    function closeSosDetail() {
-        selectedAlertId = null;
+    const SOS_PANEL_MS = 320;
+    let panelCloseTimer = null;
 
-        document.getElementById('sos-detail-panel')?.classList.add('hidden');
-
-        const tableWrap = document.getElementById('sos-table-wrap');
-        if (tableWrap) {
-            tableWrap.classList.remove('xl:col-span-7');
-            tableWrap.classList.add('xl:col-span-12');
-        }
+    function finishCloseSosDetail() {
+        const panel = document.getElementById('sos-detail-panel');
+        panel?.classList.add('sos-panel-closed');
+        panel?.classList.remove('sos-panel-open');
+        panel?.setAttribute('aria-hidden', 'true');
 
         document.querySelectorAll('.sos-alert-row').forEach((r) => {
             r.classList.remove('bg-red-100', 'dark:bg-red-950/40', 'ring-2', 'ring-red-300', 'dark:ring-red-800');
@@ -282,6 +338,23 @@ const SosDashboard = (function() {
         if (mapRoot && window.TricyKabMaps?.destroyMapOnRoot) {
             window.TricyKabMaps.destroyMapOnRoot(mapRoot);
         }
+    }
+
+    function closeSosDetail() {
+        const panel = document.getElementById('sos-detail-panel');
+        if (!panel || panel.classList.contains('sos-panel-closed')) {
+            return;
+        }
+
+        selectedAlertId = null;
+        panel.classList.remove('sos-panel-open');
+        panel.setAttribute('aria-hidden', 'true');
+
+        if (panelCloseTimer) clearTimeout(panelCloseTimer);
+        panelCloseTimer = setTimeout(() => {
+            panelCloseTimer = null;
+            finishCloseSosDetail();
+        }, SOS_PANEL_MS);
     }
 
     function openSosDetail(row) {
@@ -303,14 +376,11 @@ const SosDashboard = (function() {
         const role = row.dataset.reporterRole === 'DRIVER' ? 'Driver' : 'Passenger';
         const reporterName = row.dataset.reporterName || 'Unknown';
 
-        const tableWrap = document.getElementById('sos-table-wrap');
-        if (tableWrap) {
-            tableWrap.classList.remove('xl:col-span-12');
-            tableWrap.classList.add('xl:col-span-7');
+        const panel = document.getElementById('sos-detail-panel');
+        if (panelCloseTimer) {
+            clearTimeout(panelCloseTimer);
+            panelCloseTimer = null;
         }
-
-        document.getElementById('sos-detail-panel')?.classList.remove('hidden');
-        const content = document.getElementById('sos-detail-content');
 
         document.getElementById('sos-detail-title').textContent = `#${alertId}`;
         document.getElementById('sos-detail-reporter').textContent = `${role}: ${reporterName}`;
@@ -325,19 +395,27 @@ const SosDashboard = (function() {
             osmLink.href = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`;
         }
 
-        const mapRoot = document.getElementById('sos-map-root');
-        if (mapRoot && window.TricyKabMaps?.initSosAlertDetail) {
-            window.TricyKabMaps.initSosAlertDetail(mapRoot, {
-                alertId,
-                lat,
-                lng,
-                reporterRole: row.dataset.reporterRole,
-                label: `${role} — ${reporterName}`,
-                zoom: 16,
-            });
+        if (panel) {
+            panel.classList.remove('sos-panel-closed');
+            panel.classList.add('sos-panel-open');
+            panel.setAttribute('aria-hidden', 'false');
         }
 
-        content?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const initMap = () => {
+            const mapRoot = document.getElementById('sos-map-root');
+            if (mapRoot && window.TricyKabMaps?.initSosAlertDetail) {
+                window.TricyKabMaps.initSosAlertDetail(mapRoot, {
+                    alertId,
+                    lat,
+                    lng,
+                    reporterRole: row.dataset.reporterRole,
+                    label: `${role} — ${reporterName}`,
+                    zoom: 16,
+                });
+            }
+        };
+
+        setTimeout(initMap, SOS_PANEL_MS + 50);
     }
 
     function attachSosRowHandlers() {
@@ -459,7 +537,7 @@ const SosDashboard = (function() {
                     attachAjaxForms();
                     attachSosRowHandlers();
 
-                    if (selectedAlertId && !document.getElementById('sos-detail-panel')?.classList.contains('hidden')) {
+                    if (selectedAlertId && document.getElementById('sos-detail-panel')?.classList.contains('sos-panel-open')) {
                         const row = document.querySelector(`.sos-alert-row[data-alert-id="${selectedAlertId}"]`);
                         if (row) openSosDetail(row);
                     }
