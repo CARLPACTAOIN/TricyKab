@@ -40,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'passenger.trip.read' => \App\Http\Middleware\EnsurePassengerCanReadTrip::class,
             'passenger.receipt.read' => \App\Http\Middleware\EnsurePassengerCanReadReceipt::class,
             'passenger.sos' => \App\Http\Middleware\EnsurePassengerCanCreateSos::class,
+            'driver.sos' => \App\Http\Middleware\EnsureDriverCanCreateSos::class,
             'passenger.verified' => \App\Http\Middleware\EnsurePassengerAccountVerified::class,
             'lgu.only'           => \App\Http\Middleware\LguAdminOnly::class,
         ]);

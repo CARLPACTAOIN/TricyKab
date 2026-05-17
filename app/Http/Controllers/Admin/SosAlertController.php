@@ -14,7 +14,7 @@ class SosAlertController extends Controller
         $status = $request->string('status')->toString();
         $search = trim((string) $request->input('search', ''));
 
-        $query = SosAlert::query()->with(['booking', 'passenger']);
+        $query = SosAlert::query()->with(['booking', 'passenger', 'driver']);
 
         if (in_array($status, ['OPEN', 'ACKNOWLEDGED', 'CLOSED'], true)) {
             $query->where('status', $status);
@@ -24,6 +24,7 @@ class SosAlertController extends Controller
             $query->where(function ($subQuery) use ($search) {
                 $subQuery
                     ->where('passenger_name', 'like', '%' . $search . '%')
+                    ->orWhere('driver_name', 'like', '%' . $search . '%')
                     ->orWhere('location_note', 'like', '%' . $search . '%')
                     ->orWhereHas('booking', fn ($bookingQuery) => $bookingQuery->where('booking_reference', 'like', '%' . $search . '%'));
             });
@@ -44,7 +45,7 @@ class SosAlertController extends Controller
         $status = $request->string('status')->toString();
         $search = trim((string) $request->input('search', ''));
 
-        $query = SosAlert::query()->with(['booking', 'passenger']);
+        $query = SosAlert::query()->with(['booking', 'passenger', 'driver']);
 
         if (in_array($status, ['OPEN', 'ACKNOWLEDGED', 'CLOSED'], true)) {
             $query->where('status', $status);
@@ -54,6 +55,7 @@ class SosAlertController extends Controller
             $query->where(function ($subQuery) use ($search) {
                 $subQuery
                     ->where('passenger_name', 'like', '%' . $search . '%')
+                    ->orWhere('driver_name', 'like', '%' . $search . '%')
                     ->orWhere('location_note', 'like', '%' . $search . '%')
                     ->orWhereHas('booking', fn ($bookingQuery) => $bookingQuery->where('booking_reference', 'like', '%' . $search . '%'));
             });

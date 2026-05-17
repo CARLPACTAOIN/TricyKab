@@ -11,6 +11,9 @@ class SosAlert extends Model
         'trip_id',
         'passenger_id',
         'passenger_name',
+        'reporter_role',
+        'driver_id',
+        'driver_name',
         'latitude',
         'longitude',
         'location_note',
@@ -36,5 +39,10 @@ class SosAlert extends Model
     public function passenger()
     {
         return $this->belongsTo(User::class, 'passenger_id');
+    }
+
+    public function driver()
+    {
+        return $this->belongsTo(Driver::class);
     }
 }

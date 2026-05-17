@@ -314,6 +314,8 @@ class OtpChallengeService
             'payment:record:self',
             'earnings:read:self',
             'compliance:read:self',
+            'sos:create:self',
+            'dispute:create:self',
         ];
 
         return $this->tokenIssuer->issue($user, 'DRIVER', $scopes, $deviceId);

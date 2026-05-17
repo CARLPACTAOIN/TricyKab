@@ -47,7 +47,7 @@
     </div>
 
     <form method="GET" class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-wrap gap-3">
-        <input type="text" name="search" value="{{ $search }}" placeholder="Search passenger/location..." class="px-3 py-2 border rounded-lg text-sm w-72">
+        <input type="text" name="search" value="{{ $search }}" placeholder="Search reporter/location..." class="px-3 py-2 border rounded-lg text-sm w-72">
         <select name="status" class="px-3 py-2 border rounded-lg text-sm">
             <option value="">All Status</option>
             @foreach(['OPEN', 'ACKNOWLEDGED', 'CLOSED'] as $statusOption)
@@ -76,7 +76,7 @@
                     <tr class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 uppercase text-[10px] font-bold tracking-widest border-b border-slate-100 dark:border-slate-800">
                         <th class="px-6 py-4"><input id="toggleAllSos" type="checkbox" class="rounded border-slate-300"></th>
                         <th class="px-6 py-4">ID</th>
-                        <th class="px-6 py-4">Passenger</th>
+                        <th class="px-6 py-4">Reporter</th>
                         <th class="px-6 py-4">Booking</th>
                         <th class="px-6 py-4">Location</th>
                         <th class="px-6 py-4">Status</th>
@@ -89,7 +89,15 @@
                         <tr>
                             <td class="px-6 py-4"><input type="checkbox" name="alert_ids[]" value="{{ $alert->id }}" form="bulkSosForm" class="sos-row rounded border-slate-300"></td>
                             <td class="px-6 py-4 text-sm font-medium text-slate-500">#{{ $alert->id }}</td>
-                            <td class="px-6 py-4 text-sm">{{ $alert->passenger_name ?? $alert->passenger?->name ?? 'Unknown' }}</td>
+                            <td class="px-6 py-4 text-sm">
+                                @if(($alert->reporter_role ?? 'PASSENGER') === 'DRIVER')
+                                    <div class="text-[10px] font-bold uppercase text-amber-600">Driver</div>
+                                    <div>{{ $alert->driver_name ?? trim(($alert->driver?->first_name ?? '').' '.($alert->driver?->last_name ?? '')) ?: 'Unknown' }}</div>
+                                @else
+                                    <div class="text-[10px] font-bold uppercase text-primary">Passenger</div>
+                                    <div>{{ $alert->passenger_name ?? $alert->passenger?->name ?? 'Unknown' }}</div>
+                                @endif
+                            </td>
                             <td class="px-6 py-4 text-sm">{{ $alert->booking?->booking_reference ?? '—' }}</td>
                             <td class="px-6 py-4 text-xs text-slate-500">
                                 {{ $alert->location_note ?? '—' }}
