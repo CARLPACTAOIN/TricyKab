@@ -113,6 +113,7 @@ Table users {
   role varchar [not null, default: 'admin', note: 'admin | driver | passenger']
   phone varchar [unique, note: 'nullable allowed; unique when set']
   status varchar(20) [not null, default: 'ACTIVE']
+  fcm_token varchar(255)
   phone_verified_at datetime
   first_name varchar(100)
   last_name varchar(100)
@@ -121,6 +122,7 @@ Table users {
   emergency_contact_phone varchar(32)
   profile_photo_url varchar(500)
   toda_id bigint [ref: > todas.id, note: 'TODA scope for admin/TODA users']
+  admin_scope varchar(10)
   remember_token varchar
   created_at datetime [not null]
   updated_at datetime [not null]
@@ -184,6 +186,7 @@ Table drivers {
   address varchar
   photo varchar
   rating decimal(3,2) [not null, default: 5.00]
+  acceptance_rate_snapshot decimal(5,2)
   status varchar [not null, default: 'active']
   availability_status varchar(20) [not null, default: 'OFFLINE']
   last_availability_at datetime
@@ -336,6 +339,8 @@ Table trips {
   passenger_count tinyint [not null, default: 1]
   detour_seconds_over_initial_eta int
   gps_quality_status varchar(20) [not null, default: 'NORMAL']
+  rating tinyint
+  rated_at datetime
   end_method varchar(20)
   created_at datetime [not null]
   updated_at datetime [not null]
@@ -452,6 +457,7 @@ Table audit_logs {
   action varchar [not null]
   previous_state_json json
   new_state_json json
+  target_fields json
   reason text
   ip_address varchar
   user_agent varchar
