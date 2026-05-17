@@ -3,18 +3,24 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\V1\PassengerSosRequest;
+use App\Http\Requests\Api\V1\DriverSosRequest;
 use App\Http\Responses\ApiResponse;
 use App\Models\Booking;
+use App\Models\Driver;
 use App\Models\SosAlert;
 use App\Services\AuditLogger;
 
-class PassengerSosController extends Controller
+class DriverSosController extends Controller
 {
-    public function store(PassengerSosRequest $request, AuditLogger $audit)
+    public function store(DriverSosRequest $request, AuditLogger $audit)
     {
         $user = $request->user();
         $validated = $request->validated();
+
+        $driver = Driver::query()->where('user_id', $user->id)->first();
+        if ($driver === null) {
+            return ApiResponse::error('FORBIDDEN', 'Driver profile not found.', 403);
+        }
 
         $bookingId = isset($validated['booking_id']) ? (int) $validated['booking_id'] : null;
         $booking = null;
@@ -23,19 +29,23 @@ class PassengerSosController extends Controller
             if ($booking === null) {
                 return ApiResponse::error('RESOURCE_NOT_FOUND', 'Booking not found.', 404);
             }
-            if ($booking->passenger_id !== $user->id) {
-                return ApiResponse::error('FORBIDDEN', 'This booking does not belong to the authenticated passenger.', 403);
+            if ((int) $booking->driver_id !== (int) $driver->id) {
+                return ApiResponse::error('FORBIDDEN', 'This booking is not assigned to you.', 403);
             }
         }
 
         $tripId = $booking?->trip?->id;
+        $driverName = trim(($driver->first_name ?? '').' '.($driver->last_name ?? ''));
+        if ($driverName === '') {
+            $driverName = $user->name ?? 'Driver';
+        }
 
         $alert = SosAlert::query()->create([
             'booking_id' => $booking?->id,
             'trip_id' => $tripId,
-            'passenger_id' => $user->id,
-            'passenger_name' => $user->name,
-            'reporter_role' => 'PASSENGER',
+            'reporter_role' => 'DRIVER',
+            'driver_id' => $driver->id,
+            'driver_name' => $driverName,
             'latitude' => (float) $validated['latitude'],
             'longitude' => (float) $validated['longitude'],
             'location_note' => $validated['notes'] ?? null,
@@ -50,6 +60,7 @@ class PassengerSosController extends Controller
             next: [
                 'booking_id' => $booking?->id,
                 'trip_id' => $tripId,
+                'reporter_role' => 'DRIVER',
                 'latitude' => (float) $validated['latitude'],
                 'longitude' => (float) $validated['longitude'],
             ],
@@ -61,6 +72,7 @@ class PassengerSosController extends Controller
         return ApiResponse::success([
             'sos_alert_id' => $alert->id,
             'status' => $alert->status,
+            'reporter_role' => 'DRIVER',
             'created_at' => $alert->created_at?->utc()->toIso8601String(),
         ]);
     }

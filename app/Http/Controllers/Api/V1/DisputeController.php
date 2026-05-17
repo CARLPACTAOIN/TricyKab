@@ -58,7 +58,7 @@ class DisputeController extends Controller
 
         // Booking must be in a state where disputes make sense (not just PENDING/SEARCHING)
         $nonDisputeableStatuses = [
-            Booking::STATUS_PENDING,
+            Booking::STATUS_CREATED,
             Booking::STATUS_SEARCHING_DRIVER,
         ];
         if (in_array($booking->status, $nonDisputeableStatuses, true)) {

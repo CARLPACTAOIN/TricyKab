@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\DriverAvailabilityController;
 use App\Http\Controllers\Api\V1\DriverBookingController;
 use App\Http\Controllers\Api\V1\DriverDispatchController;
 use App\Http\Controllers\Api\V1\DriverProfileController;
+use App\Http\Controllers\Api\V1\DriverSosController;
 use App\Http\Controllers\Api\V1\DriverTripController;
 use App\Http\Controllers\Api\V1\OtpAuthController;
 use App\Http\Controllers\Api\V1\PassengerAuthController;
@@ -92,6 +93,10 @@ Route::prefix('v1')->group(function (): void {
         // Passenger SOS (PRD §3.1)
         Route::middleware('passenger.sos')
             ->post('/passenger/sos', [PassengerSosController::class, 'store']);
+
+        // Driver SOS (off-PRD pilot — admin alert with GPS)
+        Route::middleware('driver.sos')
+            ->post('/drivers/sos', [DriverSosController::class, 'store']);
 
         // Driver availability + profile (PRD §14.1)
         Route::middleware('driver.availability')
